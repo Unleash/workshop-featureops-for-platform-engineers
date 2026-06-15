@@ -1,0 +1,32 @@
+@import 'tailwindcss';
+
+/* Brand tokens (Unleash-inspired): navy ink + violet accent, Sen everywhere. */
+@theme {
+  --font-sans: 'Sen', ui-sans-serif, system-ui, sans-serif;
+  --color-brand: #6c5ce7;
+  --color-brand-ink: #1a1a2e;
+  --color-brand-deep: #312e81;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: #f8fafc;
+  color: var(--color-brand-ink);
+}
+
+/* The Unleash Toolbar hardcodes the panel to 400px, which looks cramped and truncates the
+   workshop's long flag names (e.g. p001_kx_checkout-page_headline_link-to-real-unleash-store).
+   Let it size to its content instead, capped to the viewport so it never overflows. */
+.unleash-toolbar-container .unleash-toolbar {
+  width: max-content !important;
+  max-width: 90vw;
+}
+
+/* Default-off (VITE_UNLEASH_TOOLBAR_ENABLED!=true): also hide the toolbar's floating launcher icon so
+   nothing shows until it's revealed from the console via window.unleashToolbar.show() — which opens the
+   panel directly, independent of this rule. (.ut-toggle is the launcher; the in-panel variant buttons
+   are .ut-toggle-btn / .ut-toggle-group and are not matched here.) */
+body.unleash-toolbar-disabled .unleash-toolbar-container .ut-toggle {
+  display: none !important;
+}

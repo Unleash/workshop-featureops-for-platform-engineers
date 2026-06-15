@@ -1,0 +1,16 @@
+# Dependencies & build output:
+**/dist/**
+**/node_modules/**
+**/.terraform/**
+
+# Dependencies:
+pnpm-lock.yaml
+
+# Terraform state & local artifacts:
+*.tfstate
+*.tfstate.*
+*.tf
+*.tfvars
+
+# SVG files:
+*.svg

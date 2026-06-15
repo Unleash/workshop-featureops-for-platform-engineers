@@ -1,0 +1,17 @@
+---
+description: FeatureOps agent guidelines (flag-gate payments, naming, MCP project scoping)
+alwaysApply: true
+---
+
+The canonical FeatureOps agent guidelines for this repository are in `.agent/AGENTS.md` — treat
+that file as the single source of truth and apply it to every change.
+
+@.agent/AGENTS.md
+
+Quick reminders:
+
+- Flag-gate risky changes, especially payments (the seam is
+  `src/gift-store/checkout/payments/router.ts`).
+- Flag naming: `p<NNN>_<rl|ex|op|kx|pm>_[v_]<domain>_<component>_<slug>`.
+- Always name the project id (`project-NNN`) on MCP flag operations — there is no default project.
+- PayBro and Dashed are real payment providers, not mocks.

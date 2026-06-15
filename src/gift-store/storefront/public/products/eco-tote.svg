@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Eco Tote Bag">
+  <rect width="200" height="200" rx="16" fill="#eef7f0"/>
+  <!-- bag body -->
+  <path d="M58 78 h84 l8 86 a8 8 0 0 1 -8 9 H58 a8 8 0 0 1 -8 -9 z" fill="#6c5ce7"/>
+  <!-- handles -->
+  <path d="M74 80 v-10 a26 26 0 0 1 52 0 v10" fill="none" stroke="#312e81" stroke-width="8" stroke-linecap="round"/>
+  <!-- leaf -->
+  <path d="M100 104 c-18 6 -26 24 -18 42 c18 -6 26 -24 18 -42 z" fill="#a8e6b8"/>
+  <path d="M92 138 q6 -18 8 -34" fill="none" stroke="#2f6f3e" stroke-width="4" stroke-linecap="round"/>
+  <text x="100" y="190" text-anchor="middle" font-family="Verdana, Arial, sans-serif" font-size="14" font-weight="bold" fill="#312e81">Eco Tote</text>
+</svg>

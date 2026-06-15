@@ -1,0 +1,25 @@
+packages:
+  - 'src/gift-store/*'
+  - 'src/payment-providers/*'
+  - 'support/infrastructure/unleash-provisioner'
+
+# --- Supply-chain hardening (pnpm 11 keeps these settings here, not in .npmrc) ---
+
+# Wait 24h (1440 min) before a newly published version is allowed to be installed,
+# giving the ecosystem time to detect and pull malicious releases.
+minimumReleaseAge: 1440
+
+# Enables hard-linking of all local workspace dependencies instead of symlinking.
+injectWorkspacePackages: true
+
+# Link local workspace packages for plain ("*") version ranges too — not only for the
+# pnpm-specific `workspace:` protocol. Lets the dependents (storefront, checkout) keep a
+# portable `"*"` spec for @gift-store/commerce that npm understands, while pnpm still
+# resolves it to the in-repo package. (npm rejects the `workspace:` protocol outright.)
+linkWorkspacePackages: true
+
+# Dependency lifecycle (install) scripts are blocked by default; only the packages
+# listed here may run them (everything else stays blocked).
+allowBuilds:
+  esbuild: true
+  protobufjs: true

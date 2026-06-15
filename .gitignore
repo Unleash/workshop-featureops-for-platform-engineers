@@ -1,0 +1,38 @@
+# Dependencies:
+node_modules/
+.pnpm-store/
+# Generated only when falling back to npm (no pnpm); pnpm-lock.yaml stays canonical.
+package-lock.json
+
+# Build output:
+dist/
+*.tsbuildinfo
+
+# Environment variables & secrets (only `.env.example` is committed):
+.env
+.env.local
+.env.*.local
+
+# Terraform state & local artifacts:
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+
+# Test and coverage assets:
+coverage/
+
+# Logs and assets:
+docs/development.md
+*.pdf
+*.csv
+*.log
+
+# OS cruft, VCS, IDEs, editors:
+.DS_Store
+.idea/
+.vscode/*
+
+# Ignore VS Code settings, but commit the shared MCP server template.
+!.vscode/mcp.json

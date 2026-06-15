@@ -1,0 +1,17 @@
+# Cloud connection — no defaults; supply via TF_VAR_unleash_base_url / TF_VAR_unleash_token.
+variable "unleash_base_url" {
+  description = "Cloud Unleash base URL (everything before /api)."
+  type        = string
+}
+
+variable "unleash_token" {
+  description = "Admin Service Account token or PAT used to provision Unleash. Never commit."
+  type        = string
+  sensitive   = true
+}
+
+variable "users_csv" {
+  description = "CSV file (email,name,surname) listing the workshop users to create. Each row gets its own project/group/permissions/tokens; the per-user number comes from the row order."
+  type        = string
+  default     = "users.csv"
+}

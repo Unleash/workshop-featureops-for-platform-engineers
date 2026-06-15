@@ -1,0 +1,15 @@
+{
+  "name": "unleash-provisioner",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Provisions the Unleash resources the official Terraform provider can't: project-scoped context fields, segments, the workshop's feature flags, and tag types/tags.",
+  "scripts": {
+    "provision": "tsx src/index.ts",
+    "destroy": "tsx src/destroy.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
+}

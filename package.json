@@ -1,0 +1,44 @@
+{
+  "name": "workshop-featureops-for-platform-engineers",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Demo application and supporting infrastructure for the FeatureOps workshop.",
+  "license": "Apache License 2.0",
+  "author": "Wojciech Gawroński (wojtek.gawronski@getunleash.io)",
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=11"
+  },
+  "workspaces": [
+    "src/gift-store/*",
+    "src/payment-providers/*",
+    "support/infrastructure/unleash-provisioner"
+  ],
+  "overrides": {
+    "vite": "^6.0.0"
+  },
+  "scripts": {
+    "fmt": "prettier --write .",
+    "fmt:check": "prettier --check .",
+    "lint": "eslint .",
+    "typecheck": "pnpm -r typecheck",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "dev": "NODE_OPTIONS=--disable-warning=DEP0205 concurrently -k -n web-dev,api-dev,web-prod,api-prod,paybro,dashed -c blue,green,cyan,magenta,gray,yellow \"make _dev-web\" \"make _dev-api\" \"make _dev-web-prod\" \"make _dev-api-prod\" \"make _dev-paybro\" \"make _dev-dashed\""
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@types/node": "^22.10.5",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.18.0",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0",
+    "vitest": "^3.0.0"
+  }
+}

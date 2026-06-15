@@ -1,0 +1,11 @@
+{
+  "servers": {
+    "unleash": {
+      "type": "http",
+      "url": "${env:UNLEASH_MCP_SERVER_URL}",
+      "headers": {
+        "Authorization": "Bearer ${env:UNLEASH_MCP_PAT_TOKEN}"
+      }
+    }
+  }
+}

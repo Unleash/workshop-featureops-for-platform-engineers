@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Feature Flag Sticker Pack">
+  <rect width="200" height="200" rx="16" fill="#efedfb"/>
+  <!-- stacked stickers -->
+  <g transform="rotate(-8 100 110)">
+    <rect x="46" y="70" width="92" height="92" rx="12" fill="#c7c0f4"/>
+  </g>
+  <g transform="rotate(6 100 100)">
+    <rect x="56" y="52" width="92" height="92" rx="12" fill="#6c5ce7"/>
+    <!-- little flag -->
+    <rect x="86" y="70" width="6" height="58" rx="3" fill="#ffffff"/>
+    <path d="M92 74 h36 l-10 12 l10 12 h-36 z" fill="#ffffff"/>
+  </g>
+  <text x="100" y="184" text-anchor="middle" font-family="Verdana, Arial, sans-serif" font-size="14" font-weight="bold" fill="#312e81">Sticker Pack</text>
+</svg>

@@ -1,0 +1,32 @@
+# Docker build context is the repo root (see docker-compose.yaml — every service uses `context: .`).
+# Docker only reads a .dockerignore from the context root, so this is the single file that applies to
+# all image builds. Keeping host deps/build output/secrets out of the context means a prebuilt context
+# can't ship stale node_modules or a stale dist, and never leaks local env — deps and builds run
+# in-image (pnpm install + pnpm build), and config is injected via Dockerfile ARG / compose environment.
+
+# Dependencies & build output (will be reinstalled / rebuilt inside the image):
+**/node_modules
+**/dist
+**/coverage
+**/*.log
+**/*.tsbuildinfo
+.pnpm-store
+
+# Local environment variables & secrets (the web Dockerfile writes its own .env from build args):
+.env
+.env.*
+**/.env
+**/.env.*
+
+# VCS, editors, OS cruft:
+.git
+.gitignore
+**/.DS_Store
+.idea
+.vscode
+
+# Infrastructure / provisioning state not needed for app image builds:
+**/.terraform
+*.tfstate
+*.tfstate.*
+*.tfplan

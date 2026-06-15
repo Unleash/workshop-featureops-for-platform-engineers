@@ -1,0 +1,11 @@
+# Application runtime dependencies:
+nodejs 22.22.3
+pnpm 11.7.0
+
+# Self-paced workshop dependencies:
+terraform 1.14.6
+jq 1.8.1
+
+# Development-only dependencies:
+shellcheck 0.11.0
+tflint 0.61.0

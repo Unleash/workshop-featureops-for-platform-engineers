@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Dashed">
+  <defs>
+    <linearGradient id="dashed-fav" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="0.55" stop-color="#7c3aed"/>
+      <stop offset="1" stop-color="#fb7185"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="url(#dashed-fav)"/>
+  <g stroke="#ffffff" stroke-width="2.8" stroke-linecap="round">
+    <line x1="11" y1="9" x2="11" y2="23"/>
+    <line x1="16" y1="9" x2="16" y2="23"/>
+    <line x1="21" y1="9" x2="21" y2="23"/>
+  </g>
+</svg>

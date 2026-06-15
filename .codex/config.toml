@@ -1,0 +1,13 @@
+# Codex MCP — Unleash remote MCP server (streamable HTTP).
+#
+# Codex auto-loads this PROJECT-SCOPED config (trusted projects only); it merges with your global
+# ~/.codex/config.toml. Trust this project in Codex, then:
+#   - Set `url` below to the value you are given — Codex requires a LITERAL url (no env expansion).
+#     Example (region "us" + instance "uspp0039" are NOT permanent):
+#       https://us.app.unleash-hosted.com/uspp0039/api/admin/mcp
+#   - Export UNLEASH_MCP_PAT_TOKEN in your shell — Codex sends it as the Authorization bearer token.
+
+[mcp_servers.unleash]
+url = "https://<region>.app.unleash-hosted.com/<instance>/api/admin/mcp"
+bearer_token_env_var = "UNLEASH_MCP_PAT_TOKEN"
+enabled = true
