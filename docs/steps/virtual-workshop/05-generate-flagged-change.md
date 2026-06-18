@@ -1,4 +1,4 @@
-# Segment 5 — Generate a change with a flag (with the agent)
+# Step 5: Generate a change with a flag (with the agent)
 
 The *aha* moment: let the agent write a genuinely risky change **and wrap it in a feature flag**
 inside the same generation loop — the platform's guidelines steer it, you don't hand-hold.
@@ -49,5 +49,4 @@ flag, the exact code path now guarded by it, and confirm the flag is disabled in
 ```
 </details>
 
-> Keep the flag **off** at the end of this segment — you'll give it a real rollout policy in
-> Segment 6.
+> Keep the flag **off** at the end of this step — you'll give it a real rollout policy in the 6th step.

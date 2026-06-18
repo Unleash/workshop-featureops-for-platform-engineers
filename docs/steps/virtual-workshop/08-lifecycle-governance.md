@@ -1,7 +1,7 @@
-# Segment 8 — Lifecycle + governance
+# Step 8: Lifecycle and Governance
 
 Close the loop: retire the flag cleanly so flags don't become debt at AI speed, and see the
-governance layer (RBAC + change requests) that was paved as code.
+governance layer like Role-Based Access Control (RBAC) and change requests, that was a paved path.
 
 ## Steps
 
@@ -18,10 +18,10 @@ governance layer (RBAC + change requests) that was paved as code.
 
 ## Outcome / success
 
-Your Segment-5 flag has completed its full lifecycle — **created by AI → rolled out → guarded →
+Your flag created in the 5th step has completed its full lifecycle — **created by AI → rolled out → guarded →
 reversed → retired** — and the code path is clean, with the archive recorded in the audit log. You
 can articulate the governance story: who can change what, in which environment, gated by approval,
-all as code (Git is the Layer-2 audit story; the Unleash audit log + change requests are Layer 3).
+all as code (Git is the Layer-2 audit story; the Unleash audit log and change requests are Layer 3).
 
 <details>
 <summary>Example prompt — clean up the flag</summary>

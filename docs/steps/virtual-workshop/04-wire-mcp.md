@@ -1,4 +1,4 @@
-# Segment 4 — Wire the MCP server to your assistant
+# Step 4: Wire the MCP server to your assistant
 
 Connect your AI coding assistant to the **remote Unleash MCP server** so it can read and manage
 feature flags directly.

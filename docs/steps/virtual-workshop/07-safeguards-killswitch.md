@@ -1,4 +1,4 @@
-# Segment 7 — Reversibility as a service: safeguards & kill switches
+# Step 7: Reversibility as a service: safeguards and kill switches
 
 Make the rollout self-defending: a production-signal safeguard that pauses a bad release
 automatically, plus the visceral one-click kill switch.

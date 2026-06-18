@@ -1,4 +1,4 @@
-# Segment 6 — Author the release policy
+# Step 6: Author the release policy
 
 Move from *a flag exists* to *every change inherits a policy*. Apply the org's vetted release
 template so your flag rolls out in consistent, staged milestones instead of a hand-crafted

@@ -1,6 +1,6 @@
-# Segment 3 — Setup: Environment Check
+# Step 3: Setup - Environment Check
 
-Get to a known-good state: the sample app running locally and your Unleash project reachable,
+Get to a known-good state: the sample app is running locally, and your Unleash project is reachable 
 before any AI tooling is wired in.
 
 ## Steps
@@ -11,7 +11,7 @@ before any AI tooling is wired in.
 - [ ] Run `make all` — installs dependencies, builds, and starts the app on the host
       (`Ctrl+C` to stop). Docker is an alternative: `make docker-up`.
 - [ ] In a second terminal, run `make self-check` to verify readiness.
-- [ ] Confirm the storefront (http://localhost:8080) and checkout API
+- [ ] Confirm the storefront (http://localhost:8080) and the checkout API
       (http://localhost:8081/health) respond.
 
 ## Outcome / success
@@ -20,7 +20,6 @@ before any AI tooling is wired in.
 banner and shows green checkmarks for the checks that apply to you — the app boots and (for
 self-paced attendees) your project and its `development`/`production` environments exist. The
 store loads in the browser. You're now at the same known-good starting line as everyone else,
-ready to connect your AI assistant in Segment 4.
+ready to connect your AI assistant in the 4th step.
 
-> This segment has no AI prompts — it's plain setup. Keep the app running for the rest of the
-> workshop.
+> This step has no AI prompts — it's a plain setup. Keep the app running for the rest of the workshop.
