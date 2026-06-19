@@ -1,0 +1,14 @@
+{
+  "name": "copilot-flag-cleanup-webhook",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Example scripts that register/unregister the Unleash feature-completed → GitHub issue webhook for automated flag cleanup with GitHub Copilot.",
+  "scripts": {
+    "register": "tsx register-webhook.ts",
+    "unregister": "tsx unregister-webhook.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
+}

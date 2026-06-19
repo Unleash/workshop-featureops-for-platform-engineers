@@ -7,7 +7,15 @@ import globals from 'globals';
 
 export default tseslint.config(
   {
-    ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**', '**/.terraform/**'],
+    // `other-examples/**` is intentionally outside the pnpm workspace — standalone samples run
+    // via tsx with their own tooling, so they're excluded from the type-aware workspace lint too.
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      '**/coverage/**',
+      '**/.terraform/**',
+      'other-examples/**',
+    ],
   },
 
   // Base JS + strict, type-checked TypeScript everywhere.

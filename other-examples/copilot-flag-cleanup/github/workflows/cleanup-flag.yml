@@ -1,0 +1,32 @@
+# EXAMPLE WORKFLOW — inert here on purpose.
+#
+# GitHub Actions only runs workflows from the repository-root `.github/workflows/` directory, so
+# this file does nothing while it lives under `other-examples/`. To activate automated flag
+# cleanup, copy it to `.github/workflows/cleanup-flag.yml` and configure:
+#   - repo secret COPILOT_TRIGGER_TOKEN — a token allowed to assign issues to Copilot
+#   - the GitHub Copilot coding agent enabled for the repository
+#   - the Unleash MCP server registered for the Copilot cloud agent (see ../copilot/mcp.json)
+#
+# Flow: Unleash marks a flag completed -> webhook opens an issue labeled `unleash-flag-completed`
+#       -> this workflow assigns @copilot -> Copilot opens a cleanup PR via the Unleash MCP server.
+name: Unleash flag cleanup (assign Copilot)
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  issues: write
+
+jobs:
+  assign-copilot:
+    if: github.event.label.name == 'unleash-flag-completed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign the Copilot coding agent
+        env:
+          GH_TOKEN: ${{ secrets.COPILOT_TRIGGER_TOKEN }}
+        run: |
+          gh issue edit "${{ github.event.issue.number }}" \
+            --repo "${{ github.repository }}" \
+            --add-assignee "@copilot"

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "unleash": {
+      "type": "http",
+      "url": "$UNLEASH_MCP_SERVER_URL",
+      "headers": {
+        "Authorization": "Bearer $UNLEASH_MCP_PAT_TOKEN"
+      },
+      "tools": ["detect_flag", "get_flag_state", "cleanup_flag"]
+    }
+  }
+}

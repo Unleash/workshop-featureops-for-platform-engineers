@@ -1,0 +1,5 @@
+{
+  "title": "Clean up feature flag: {{featureName}}",
+  "labels": ["unleash-flag-completed"],
+  "body": "An Unleash flag has been marked **completed** and is ready for code cleanup.\n\n- **Flag:** `{{featureName}}`\n- **Project:** `{{project}}`\n- **Event:** `{{type}}`\n\n## Cleanup steps (for the Copilot coding agent)\n\n1. Run `detect_flag` for `{{featureName}}` in project `{{project}}` to find every reference.\n2. Run `get_flag_state` to confirm the completion outcome (which branch — enabled or disabled — to keep).\n3. Run `cleanup_flag` for framework-specific removal guidance.\n4. Remove the flag check and keep the rolled-out path. Preserve the strategy seam in `router.ts`.\n5. Update the affected tests.\n6. Open a small, focused PR that links this issue.\n\n_Always name the project (`{{project}}`) explicitly — the remote MCP server has no default project._"
+}
