@@ -14,7 +14,8 @@
   "workspaces": [
     "src/gift-store/*",
     "src/payment-providers/*",
-    "support/infrastructure/unleash-provisioner"
+    "support/infrastructure/unleash-provisioner",
+    "support/master-kill-switch"
   ],
   "overrides": {
     "vite": "^6.0.0"

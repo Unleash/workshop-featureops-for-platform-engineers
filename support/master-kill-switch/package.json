@@ -1,0 +1,18 @@
+{
+  "name": "master-kill-switch",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fires the master-kill-switch signal that disables the SWAG-store-link kill switch in every project (dev + prod) via Unleash Signals & Actions. CLI plus a button webpage.",
+  "scripts": {
+    "fire": "tsx src/cli.ts",
+    "web": "tsx src/server.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fastify": "^5.2.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
+}

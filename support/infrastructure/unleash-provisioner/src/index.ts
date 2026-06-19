@@ -6,8 +6,9 @@
  *   3. the pNNN_internal-users segment (references pNNN_email)
  *   4. per-flag Layer tags (the global Layer tag type is created once)
  *
- * Plus two instance-global resources created once (not per project): the Layer tag type and the
- * "Golden Release Template" (the org-wide rollout policy of Segment 6).
+ * Plus instance-global resources created once (not per project): the Layer tag type, the
+ * "Golden Release Template" (the org-wide rollout policy of Segment 6), and the master-kill-switch
+ * signal endpoint (whose per-project Actions are then created in the loop).
  *
  * Run after `terraform apply`. Flag mutations on the change-request-guarded `production`
  * environment are wrapped so the guard is lifted, applied, then restored — per project.
@@ -19,6 +20,8 @@ import { createFlags } from './flags/flags';
 import { createSegments } from './setup/segments';
 import { applyTags, createTagType } from './flags/tags';
 import { createReleaseTemplate } from './setup/release-templates';
+import { createMasterKillSwitchSignal } from './setup/master-kill-switch-signal';
+import { createMasterKillSwitchAction, resolveActorId } from './setup/master-kill-switch-actions';
 
 const run = async (): Promise<void> => {
   try {
@@ -27,11 +30,17 @@ const run = async (): Promise<void> => {
     );
     await createTagType();
     await createReleaseTemplate();
+    // The signal endpoint + actor are instance-wide; the per-project Actions bind to them below.
+    const signal = await createMasterKillSwitchSignal();
+    const actorId = signal ? await resolveActorId() : null;
     for (const project of PROJECTS) {
       await createContextFields(project);
       await withChangeRequestsDisabled(project, () => createFlags(project));
       await createSegments(project);
       await applyTags(project);
+      if (signal && actorId !== null) {
+        await createMasterKillSwitchAction(project, signal.endpointId, actorId);
+      }
     }
     console.log('[provision] Done.');
   } catch (error: unknown) {

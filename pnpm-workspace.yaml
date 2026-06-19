@@ -2,6 +2,7 @@ packages:
   - 'src/gift-store/*'
   - 'src/payment-providers/*'
   - 'support/infrastructure/unleash-provisioner'
+  - 'support/master-kill-switch'
 
 # --- Supply-chain hardening (pnpm 11 keeps these settings here, not in .npmrc) ---
 

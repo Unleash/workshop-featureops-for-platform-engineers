@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Master Kill Switch</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        background: radial-gradient(circle at 50% 30%, #1f2937, #0b0f17 70%);
+        color: #e5e7eb;
+      }
+      main {
+        text-align: center;
+        padding: 2rem;
+        max-width: 32rem;
+      }
+      h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        margin: 0 0 0.5rem;
+      }
+      p.sub {
+        margin: 0 0 2rem;
+        color: #9ca3af;
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+      button {
+        appearance: none;
+        border: none;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: 0.04em;
+        color: #fff;
+        padding: 1.4rem 2.4rem;
+        border-radius: 1rem;
+        background: linear-gradient(180deg, #ef4444, #b91c1c);
+        box-shadow:
+          0 10px 30px rgba(239, 68, 68, 0.35),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        transition:
+          transform 0.08s ease,
+          box-shadow 0.2s ease,
+          opacity 0.2s ease;
+      }
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 36px rgba(239, 68, 68, 0.45);
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: progress;
+        transform: none;
+      }
+      #status {
+        margin-top: 1.5rem;
+        min-height: 1.5rem;
+        font-size: 0.95rem;
+      }
+      .ok {
+        color: #34d399;
+      }
+      .err {
+        color: #f87171;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>🛑 Master Kill Switch</h1>
+      <p class="sub">
+        Disables the “real SWAG store link” kill switch in <strong>every</strong> project, across
+        development and production. Actions fire in ~60s.
+      </p>
+      <button id="fire" type="button">DISABLE ALL PROJECTS</button>
+      <div id="status"></div>
+    </main>
+    <script>
+      const button = document.getElementById('fire');
+      const status = document.getElementById('status');
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        status.className = '';
+        status.textContent = 'Firing signal…';
+        try {
+          const response = await fetch('/fire', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: 'master kill switch (web button)' }),
+          });
+          const data = await response.json();
+          if (response.ok && data.ok) {
+            status.className = 'ok';
+            status.textContent =
+              '✓ Signal accepted. The kill switch turns OFF in dev + prod within ~60s.';
+          } else {
+            status.className = 'err';
+            status.textContent = '✗ Rejected: ' + (data.error || data.body || response.status);
+          }
+        } catch (error) {
+          status.className = 'err';
+          status.textContent = '✗ Request failed: ' + error;
+        } finally {
+          button.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

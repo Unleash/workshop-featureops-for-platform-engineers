@@ -13,6 +13,9 @@ dist/
 .env.local
 .env.*.local
 
+# Master kill switch signal URL + token, written by the provisioner for the sender:
+.master-kill-switch.json
+
 # Terraform state & local artifacts:
 **/.terraform/
 *.tfstate

@@ -53,6 +53,7 @@ PNUM := $(or $(strip $(UNLEASH_PROJECT_NUMBER)),001)
 .PHONY: help all self-check setup install dev clean \
         docker-pull docker-up docker-down docker-image docker-logs \
         unleash-create unleash-destroy \
+        master-kill-switch master-kill-switch-web \
         maint-fmt maint-lint-infra maint-lint maint-build maint-test maint-check \
         ensure-env ensure-tf-env shared-build \
         _dev-web _dev-api _dev-web-prod _dev-api-prod _dev-paybro _dev-dashed
@@ -182,7 +183,7 @@ unleash-create: ensure-env ensure-tf-env
 	@echo "→ Provisioning users / project / group and minting app tokens with Terraform…"
 	@$(TF) init -input=false >/dev/null
 	@$(TF) apply -auto-approve -input=false
-	@echo "→ Provisioning flags, project-scoped context fields, segment, and Layer tags (all projects)…"
+	@echo "→ Provisioning flags, context fields, segment, Layer tags, and the master kill switch (all projects)…"
 	@UNLEASH_PROJECTS="$$($(TF) output -raw project_ids)" \
 	 $(call pm_filter,unleash-provisioner,provision)
 	@FE=$$($(TF) output -raw selfpaced_frontend_client_key); \
@@ -218,6 +219,17 @@ unleash-destroy: ensure-env ensure-tf-env
 	 fi
 	@echo "→ Destroying Terraform-managed Unleash resources…"
 	@$(TF) destroy -auto-approve -input=false
+
+# Master kill switch — one signal disables the SWAG-store-link kill switch in EVERY project
+# (dev + prod). Needs the master kill switch provisioned first (make unleash-create writes the
+# signal URL + token into .master-kill-switch.json at the repo root).
+master-kill-switch:
+	@echo "→ Firing the master kill switch (actions fire in ~60s)…"
+	$(call pm_filter,master-kill-switch,fire)
+
+master-kill-switch-web:
+	@echo "→ Serving the master kill switch console on http://localhost:8500 …"
+	$(call pm_filter,master-kill-switch,web)
 
 # =====================================================================
 # Maintainer (maint- prefix)
