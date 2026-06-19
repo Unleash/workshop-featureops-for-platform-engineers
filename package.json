@@ -6,7 +6,7 @@
   "description": "Demo application and supporting infrastructure for the FeatureOps workshop.",
   "license": "Apache License 2.0",
   "author": "Wojciech Gawroński (wojtek.gawronski@getunleash.io)",
-  "packageManager": "pnpm@11.7.0",
+  "packageManager": "pnpm@11.8.0",
   "engines": {
     "node": ">=22",
     "pnpm": ">=11"
@@ -18,7 +18,7 @@
     "support/master-kill-switch"
   ],
   "overrides": {
-    "vite": "^6.0.0"
+    "vite": "6.4.3"
   },
   "scripts": {
     "fmt": "prettier --write .",

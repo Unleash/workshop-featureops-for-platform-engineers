@@ -3,7 +3,7 @@
 FROM node:26-alpine AS base
 ENV PNPM_HOME="/pnpm" PATH="/pnpm:$PATH"
 RUN npm install --global npm@latest
-RUN npm install --global corepack@latest && corepack prepare pnpm@11.7.0 --activate
+RUN npm install --global corepack@latest && corepack prepare pnpm@11.8.0 --activate
 WORKDIR /repo
 
 FROM base AS build

@@ -4,6 +4,16 @@ packages:
   - 'support/infrastructure/unleash-provisioner'
   - 'support/master-kill-switch'
 
+# Pin vite to a single version across the workspace. vitest pulls vite in as a peer
+# dependency, and without this pin pnpm let two patch releases (6.4.2 + 6.4.3) coexist —
+# storefront/plugins on 6.4.3, vitest/mocker on 6.4.2. That split makes `vite build`
+# type-check fail in storefront/vitest.config.ts because react()'s Plugin type (6.4.3) is
+# "unrelated" to vitest/config's expected Plugin type (6.4.2). pnpm 11 reads overrides
+# from this file (the root package.json `overrides` is kept in sync for the npm fallback
+# install path).
+overrides:
+  vite: 6.4.3
+
 # --- Supply-chain hardening (pnpm 11 keeps these settings here, not in .npmrc) ---
 
 # Wait 24h (1440 min) before a newly published version is allowed to be installed,

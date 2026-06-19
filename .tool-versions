@@ -1,6 +1,6 @@
 # Application runtime dependencies:
 nodejs 22.22.3
-pnpm 11.7.0
+pnpm 11.8.0
 
 # Self-paced workshop dependencies:
 terraform 1.14.6
