@@ -22,41 +22,38 @@ that the code is safe to ship by aligning to **[FeatureOps](https://featureops.i
 
 ## Quick Start
 
-### Requirements
+### Dependencies
 
-| Tool           | Minimum version  |
-|----------------|------------------|
-| Node.js        | 22+              |
-| Docker Engine  | 24+              |
-| Docker Compose | 2.20+            |
-| GNU Make       | any              |
+| Tool           | Minimum version | Optional |
+|----------------|-----------------|----------|
+| Node.js        | ^22.0.0         |          |
+| GNU Make       | _any_           |          |
+| Docker         | ^29.0.0         | ✅        |
+| Docker Compose | ^5.0.0          | ✅        |
+| pnpm           | ^11.8.0         | ✅        |
 
-Here is a minimal `.env` file for both virtual workshop attendees and self-paced experience workshop experience:
+### For the attendees of a virtual hands-on workshop ...
+
+If you want to prepare for the workshop ahead of time, `git clone` this repository. Then, inside the cloned repository,  
+run the following command – and follow the instructions printed in the console:
 
 ```bash
-UNLEASH_PROJECT_NUMBER=<NNN - three digit number that is assigned and visible in the Unleash admin UI as a project name>
-VITE_UNLEASH_PROJECT_NUMBER=<As above>
-
-VITE_UNLEASH_URL=<Frontend Unleash API you can find in the Unleash admin UI inside your project settings>
-UNLEASH_URL=<Backend Unleash API you can find in the Unleash admin UI inside your project settings>
-
-VITE_UNLEASH_CLIENT_KEY=<Frontend Unleash API token generated for your project for development environment>
-VITE_UNLEASH_CLIENT_KEY_PRODUCTION=<Frontend Unleash API token generated for your project for production environment>
-
-UNLEASH_API_TOKEN=<Backend Unleash API token generated for your project for development environment>
-UNLEASH_API_TOKEN_PRODUCTION=<Backend Unleash API token generated for your project for production environment>
-
-UNLEASH_MCP_SERVER_URL=<Remote Unleash MCP server URL provided by instructor>
-UNLEASH_MCP_PAT_TOKEN=<Personal Access Token created by you in one of the steps>
+make setup 
 ```
 
-### Virtual hands-on workshop
+As an optional step (as the recommended path is to use local _Node.js_ and `pnpm`/`npm`), you can pre-pull all the 
+necessary *Docker* images:
 
-Go to the [docs/steps/virtual-workshop/README.md](docs/steps/virtual-workshop/README.md) and follow the steps. 
+```bash
+make docker-pull
+```
+
+Then, during the actual workshop you will follow the guidelines from the lecturer – but additionally, all materials are 
+available for you inside this very repository. You can follow the steps here: [docs/steps/virtual-workshop/README.md](docs/steps/virtual-workshop/README.md) 
 
 ## Contributing and Development
 
-Eventually, everything all details will be in [docs/development.md](docs/development.md), but not at the moment.
+Eventually, everything all details will be in [docs/development.md](docs/development.md), but _not at the moment_.
 
 ## Editions
 

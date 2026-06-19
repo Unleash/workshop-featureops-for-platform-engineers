@@ -124,11 +124,7 @@ install:
 
 setup: install ensure-env
 	@echo ""
-	@echo "✅ Dependencies installed and .env ready. Next:"
-	@echo "  • Guided/virtual attendee — paste the provided VITE_UNLEASH_URL / UNLEASH_URL and"
-	@echo "    VITE_UNLEASH_CLIENT_KEY / UNLEASH_API_TOKEN into .env, then:  make dev"
-	@echo "  • Self-paced attendee — set TF_VAR_unleash_base_url + TF_VAR_unleash_token in .env,"
-	@echo "    then:  make unleash-create  &&  make dev"
+	@echo "✅ Dependencies installed and .env file is ready to edit during the workshop!"
 
 # Run the three apps on the host. No lint gate — keep it fast for attendees.
 dev: ensure-env shared-build
