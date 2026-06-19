@@ -29,10 +29,12 @@ docs/development.md
 *.csv
 *.log
 
-# OS cruft, VCS, IDEs, editors:
+# OS cruft, Agents, VCS, IDEs, editors:
 .DS_Store
 .idea/
 .vscode/*
+.claude/worktrees/*
+!.claude/settings.local.json
 
 # Ignore VS Code settings, but commit the shared MCP server template.
 !.vscode/mcp.json
