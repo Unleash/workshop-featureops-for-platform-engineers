@@ -1,0 +1,22 @@
+# Isolated from the gift-store compose: distinct project name, distinct (free) port, no shared
+# networks/volumes, no external database (in-memory SQLite). One container serves both the
+# Backstage API and the built frontend on 7007.
+name: backstage-with-unleash
+
+services:
+  backstage:
+    build:
+      context: .
+    image: backstage-with-unleash:local
+    ports:
+      - '7007:7007'
+    env_file:
+      - .env
+    healthcheck:
+      test:
+        ['CMD', 'curl', '-fsS', 'http://localhost:7007/.backstage/health/v1/liveness']
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    restart: unless-stopped
