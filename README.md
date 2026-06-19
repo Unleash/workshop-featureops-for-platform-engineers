@@ -9,7 +9,7 @@ Repository contains a full-stack **TypeScript** demo application that represents
 
 It is a deliberately small but realistically structured app: a React.js-based storefront, a Node.js Fastify checkout backend, and separate, isolated fake payment providers (**PayBro**: already connected, but _old-school_ vendor, and **Dashed**: a ready to use modern alternative – but not connected yet). Backend integrates with them through a real redirect-based payment flow.
 
-Demo contains a few feature flags built-in already, but the main goal is to demonstrate the experience of the application team using a paved golden path to ship code safely. Code is prepared to support either for replacing the existing payment provider completely or adding an alternative customer journey path allowing to choose a vendor during the checkout. It's up to you – however, by leveraging AI coding assistant of your choice, we want to make sure that the code is safe to ship by aligning to **[FeatureOps](https://featureops.io) deliberate best practices**.
+Demo contains a few feature flags built-in already, but the main goal is to demonstrate the experience of the application team using a paved golden path to ship code safely. Code is prepared to support either for replacing the existing payment provider completely or adding an alternative customer journey path allowing to choose a vendor during the checkout. It's up to you – however, by leveraging AI coding assistant of your choice, we want to make sure that the code is safe to ship by aligning to **[FeatureOps](https://featureops.io) principles and pillars**.
 
 ## Quick Start
 
