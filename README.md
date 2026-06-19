@@ -49,4 +49,4 @@ Eventually, everything all details will be in [docs/development.md](docs/develop
 
 ## License
 
-[Apache Licence 2.0](./LICENSE)
+[Apache Licence 2.0](./LICENSE.md)
