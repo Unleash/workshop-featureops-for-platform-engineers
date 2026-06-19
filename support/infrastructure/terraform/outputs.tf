@@ -50,3 +50,11 @@ output "unleash_frontend_url" {
   description = "Frontend API URL for the browser app (VITE_UNLEASH_URL)."
   value       = "${trimsuffix(var.unleash_base_url, "/")}/api/frontend"
 }
+
+# Service-account token for the isolated Backstage example
+# (other-examples/backstage-with-unleash → UNLEASH_API_TOKEN).
+output "backstage_unleash_token" {
+  description = "Service-account token (Viewer, read-only) for the Backstage Unleash plugin (UNLEASH_API_TOKEN)."
+  value       = unleash_service_account_token.backstage.secret
+  sensitive   = true
+}

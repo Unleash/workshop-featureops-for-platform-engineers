@@ -1,0 +1,29 @@
+# Overlay applied on top of app-config.yaml when running inside the Docker image.
+# The backend serves the built frontend (app-backend plugin), so app and backend share one
+# origin and one port (7007). State is ephemeral in-memory SQLite — no external database.
+app:
+  # Must match backend.baseUrl when the frontend is served by the backend.
+  baseUrl: http://localhost:7007
+
+backend:
+  baseUrl: http://localhost:7007
+  listen: ':7007'
+  cors:
+    origin: http://localhost:7007
+  database:
+    client: better-sqlite3
+    connection: ':memory:'
+
+catalog:
+  # Replaces the example locations from app-config.yaml. File targets are relative to the
+  # backend process CWD (/app in the image).
+  locations:
+    # Owner group/user for the generated components.
+    - type: file
+      target: ./catalog/org.yaml
+      rules:
+        - allow: [User, Group]
+    # Generated at container start by scripts/generate-catalog.mjs — one Component per Unleash
+    # project visible to the service-account token.
+    - type: file
+      target: ./catalog/projects.generated.yaml

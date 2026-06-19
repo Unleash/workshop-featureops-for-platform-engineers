@@ -1,0 +1,12 @@
+# The multi-stage Dockerfile builds the app INSIDE the image, so source IS needed in the
+# build context — only exclude caches, installed modules, build output and local secrets.
+.git
+.yarn/cache
+.yarn/install-state.gz
+node_modules
+packages/*/node_modules
+dist
+dist-types
+*.local.yaml
+.env
+catalog/projects.generated.yaml
