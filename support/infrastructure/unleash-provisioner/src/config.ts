@@ -51,3 +51,21 @@ export const CR_ENVIRONMENTS = splitWords(process.env.UNLEASH_CR_ENVIRONMENTS ??
 
 /** Approvals to restore on guarded environments (matches Terraform's desired state). */
 export const REQUIRED_APPROVALS = Number(process.env.UNLEASH_PROD_REQUIRED_APPROVALS ?? '1');
+
+// --- Master kill switch (Signals + Actions) ------------------------------------------------------
+// One instance-level signal endpoint; per-project actions react to it and turn the SWAG-store-link
+// kill switch off in every environment. The actor is the Terraform-provisioned service account
+// (resolved by username), and the intent string is what each action matches on to validate the
+// signal before firing — see support/master-kill-switch for the sender.
+
+/** Name of the single signal endpoint that fires the master kill switch. */
+export const MASTER_KILL_SWITCH_SIGNAL = 'master-kill-switch';
+
+/** Payload intent (data.intent) an incoming signal must carry for the actions to fire. */
+export const MASTER_KILL_SWITCH_INTENT = 'disable-swag-store-killswitch';
+
+/** Username of the Terraform-provisioned service account the actions run as (their `actorId`). */
+export const MASTER_KILL_SWITCH_ACTOR_USERNAME = 'master-kill-switch-actor';
+
+/** Repo-root file the provisioner writes the signal URL + token to, for the sender to read. */
+export const MASTER_KILL_SWITCH_FILE = '.master-kill-switch.json';

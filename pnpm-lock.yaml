@@ -172,6 +172,16 @@ importers:
         specifier: ^4.19.2
         version: 4.22.3
 
+  support/master-kill-switch:
+    dependencies:
+      fastify:
+        specifier: ^5.2.1
+        version: 5.8.5
+    devDependencies:
+      tsx:
+        specifier: ^4.19.2
+        version: 4.22.3
+
 packages:
 
   '@adobe/css-tools@4.5.0':
@@ -3271,7 +3281,7 @@ packages:
         optional: true
       yaml:
         optional: true
-        
+
   vite@6.4.3:
     resolution: {integrity: sha512-NTKlcQjlAK7MlQoyb6LgaqHc8sso/pVyUJYWMws3jg21uTJw/LddqIFPcPqP6PzpgbIcZyKI85sFE4HBrQDA8A==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
@@ -3311,7 +3321,7 @@ packages:
         optional: true
       yaml:
         optional: true
-        
+
   vitest@3.2.6:
     resolution: {integrity: sha512-xejya+bT/j/+R/AGa1XOfRxLmNUlLtlwjRsFUILF+xHfzElmGcmFydy2gqqIrd62ptIEfwVMofd19uNWD9L7Nw==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}

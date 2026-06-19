@@ -33,15 +33,13 @@ const FLAGS: FlagDef[] = [
   {
     suffix: 'rl_checkout-page_basket-preview_product-images',
     type: 'release',
-    description:
-      'Return product image URLs from the catalog API for the basket preview.',
+    description: 'Return product image URLs from the catalog API for the basket preview.',
     enabledEnvironments: [],
   },
   {
     suffix: 'kx_checkout-page_headline_link-to-real-unleash-store',
     type: 'kill-switch',
-    description:
-      'Kill switch: when ENABLED, hides the link to the real Unleash store.',
+    description: 'Kill switch: when ENABLED, hides the link to the real Unleash store.',
     enabledEnvironments: ['development', 'production'],
   },
   {
@@ -75,6 +73,16 @@ const flagName = (project: string, suffix: string): string =>
 
 /** The flag-name suffixes, exposed so other tooling can reference the same source of truth. */
 export const FLAG_SUFFIXES: string[] = FLAGS.map((flag) => flag.suffix);
+
+/** The single kill-switch flag — the master kill switch's target. */
+const killSwitchFlag = FLAGS.find((flag) => flag.type === 'kill-switch');
+if (!killSwitchFlag) {
+  throw new Error('No kill-switch flag defined in FLAGS — the master kill switch needs one.');
+}
+
+/** Full name of a project's kill-switch flag, e.g. p001_kx_checkout-page_headline_link-to-real-unleash-store. */
+export const killSwitchFlagName = (project: string): string =>
+  flagName(project, killSwitchFlag.suffix);
 
 interface StrategySummary {
   id: string;

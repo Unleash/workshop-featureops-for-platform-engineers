@@ -147,6 +147,13 @@ resource "unleash_project_access" "team" {
       users  = []
       groups = [tonumber(unleash_group.team[each.key].id)]
     },
+    # The master-kill-switch service account, so its Actions can flip this project's kill switch off
+    # in dev + prod (and skip prod change requests). See service-accounts.tf.
+    {
+      role   = tonumber(unleash_role.master_kill_switch_toggler.id)
+      users  = [tonumber(unleash_service_account.master_kill_switch.id)]
+      groups = []
+    },
   ]
 
   # Env-scoped change-request permissions only take effect once production is
