@@ -88,7 +88,7 @@ help:
 	@echo "  make maint-check      Format, lint (app + scripts), build, test, typecheck"
 	@echo "  make maint-lint       Lint app + scripts    ·  make maint-fmt    Format everything"
 	@echo "  make maint-test       Run tests             ·  make maint-build  Production build"
-	@echo "  make unleash-create   Provision project/users/envs + import flags + write .env tokens"
+	@echo "  make unleash-create   Provision project/users/envs + import flags"
 	@echo "  make unleash-destroy  Archive flags and tear everything down"
 	@echo "  (provisioning needs terraform + TF_VAR_unleash_base_url / TF_VAR_unleash_token in .env)"
 	@echo ""
@@ -178,23 +178,6 @@ unleash-create: ensure-env ensure-tf-env
 	@echo "→ Provisioning flags, context fields, segment, Layer tags, and the master kill switch (all projects)…"
 	@UNLEASH_PROJECTS="$$($(TF) output -raw project_ids)" \
 	 $(call pm_filter,unleash-provisioner,provision)
-	@FE=$$($(TF) output -raw selfpaced_frontend_client_key); \
-	 BE=$$($(TF) output -raw selfpaced_backend_api_token); \
-	 FE_PROD=$$($(TF) output -raw selfpaced_frontend_client_key_production); \
-	 BE_PROD=$$($(TF) output -raw selfpaced_backend_api_token_production); \
-	 PNUM=$$($(TF) output -raw selfpaced_project_number); \
-	 FE_URL=$$($(TF) output -raw unleash_frontend_url); \
-	 BE_URL=$$($(TF) output -raw unleash_backend_url); \
-	 tmp=$$(mktemp); \
-	 grep -v \
-	   -e '^VITE_UNLEASH_CLIENT_KEY=' -e '^VITE_UNLEASH_CLIENT_KEY_PRODUCTION=' \
-	   -e '^UNLEASH_API_TOKEN=' -e '^UNLEASH_API_TOKEN_PRODUCTION=' \
-	   -e '^VITE_UNLEASH_URL=' -e '^UNLEASH_URL=' \
-	   -e '^VITE_UNLEASH_PROJECT_NUMBER=' -e '^UNLEASH_PROJECT_NUMBER=' .env > $$tmp; \
-	 printf 'VITE_UNLEASH_CLIENT_KEY=%s\nVITE_UNLEASH_CLIENT_KEY_PRODUCTION=%s\nUNLEASH_API_TOKEN=%s\nUNLEASH_API_TOKEN_PRODUCTION=%s\nVITE_UNLEASH_URL=%s\nUNLEASH_URL=%s\nVITE_UNLEASH_PROJECT_NUMBER=%s\nUNLEASH_PROJECT_NUMBER=%s\n' \
-	   "$$FE" "$$FE_PROD" "$$BE" "$$BE_PROD" "$$FE_URL" "$$BE_URL" "$$PNUM" "$$PNUM" >> $$tmp; \
-	 mv $$tmp .env; \
-	 echo "→ Wrote Unleash app tokens (development + production), URLs, and project number ($$PNUM) into .env"
 
 unleash-destroy: ensure-env ensure-tf-env
 	@$(TF) init -input=false >/dev/null

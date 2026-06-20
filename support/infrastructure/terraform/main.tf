@@ -15,8 +15,6 @@ locals {
   # Key every per-user resource by a zero-padded number derived from row order: "001", "002", …
   users_by_number = { for i, u in local.users : format("%03d", i + 1) => u }
   numbers         = sort(keys(local.users_by_number))
-  # The self-paced app runs as the first user; its tokens/number feed `.env`.
-  first_number = local.numbers[0]
 }
 
 # Standard roles, looked up by name so we don't hard-code numeric ids.
