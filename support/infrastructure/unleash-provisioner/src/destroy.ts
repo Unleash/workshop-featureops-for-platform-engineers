@@ -21,6 +21,7 @@ import { deleteContextFields } from './setup/context-fields';
 import { deleteTagType } from './flags/tags';
 import { deleteReleaseTemplate } from './setup/release-templates';
 import { reviveDefaultProject } from './setup/default-project';
+import { disableRemoteMcp } from './setup/remote-mcp';
 import { deleteMasterKillSwitchSignal } from './setup/master-kill-switch-signal';
 import { deleteMasterKillSwitchAction } from './setup/master-kill-switch-actions';
 
@@ -37,6 +38,7 @@ const run = async (): Promise<void> => {
     }
     await deleteTagType();
     await deleteReleaseTemplate();
+    await disableRemoteMcp();
     await deleteMasterKillSwitchSignal();
     await reviveDefaultProject();
     console.log('[destroy] Done.');

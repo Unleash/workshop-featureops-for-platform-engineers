@@ -22,6 +22,7 @@ import { createSegments } from './setup/segments';
 import { applyTags, createTagType } from './flags/tags';
 import { createReleaseTemplate } from './setup/release-templates';
 import { archiveDefaultProject } from './setup/default-project';
+import { enableRemoteMcp } from './setup/remote-mcp';
 import { createMasterKillSwitchSignal } from './setup/master-kill-switch-signal';
 import { createMasterKillSwitchAction, resolveActorId } from './setup/master-kill-switch-actions';
 
@@ -33,6 +34,7 @@ const run = async (): Promise<void> => {
     await archiveDefaultProject();
     await createTagType();
     await createReleaseTemplate();
+    await enableRemoteMcp();
     // The signal endpoint + actor are instance-wide; the per-project Actions bind to them below.
     const signal = await createMasterKillSwitchSignal();
     const actorId = signal ? await resolveActorId() : null;
