@@ -1,32 +1,41 @@
 # Step 3: Setup - Environment Check
 
-Get to a known-good state: the sample app is running locally, and your Unleash project is reachable 
-before any AI tooling is wired in.
+Get to a known-good state: your `.env` is filled, the sample app is running locally, and your
+Unleash project is reachable before any AI tooling is wired in.
 
-## Steps
-
-If you don't have the repository cloned already, or your `.env` file is missing:
+## Before the workshop (homework)
 
 - [ ] Clone the repository.
-- [ ] Inside the repository, run `make setup` to install dependencies and create the `.env` file.
+- [ ] Inside the repository, run `make workshop-pre-check`. It installs dependencies and checks
+      your machine is ready: the tools we need (`curl`, `jq`), that the app ports are free
+      (8080/8081/8090/8091/8400/8401), and that no stray Unleash variables are lurking in your
+      shell. (`make setup` is kept as an alias for this.)
 
-If you have done the above in advance, you can start here:
+## At the workshop
 
-- [ ] We need to replace a few values inside `.env`: your project number (`UNLEASH_PROJECT_NUMBER`), 
-      the Unleash URLs, and the app tokens.
-- [ ] Now you can start the app by either `make dev` or `make docker-up` (remember about `make docker-down`).
-- [ ] In a second terminal, run `make self-check` to verify readiness.
-- [ ] Confirm the development storefront (http://localhost:8080) and 
+- [ ] **Create a Personal Access Token (PAT).** In the Unleash UI, open
+      `https://<region>.app.unleash-hosted.com/<instance>/profile/personal-api-tokens`
+      (find `<region>` and `<instance>` in your Unleash Admin UI URL), and create a token with an
+      expiry that covers the workshop. Keep it handy — you'll paste it next.
+- [ ] **Run `make workshop-configure`.** It asks for your region and instance, asks you to paste
+      the PAT, and then fills `.env` for you — the Unleash / Frontend / MCP URLs, your project
+      number (auto-detected as the project you own, which it also stars for you), and all four SDK
+      tokens. No copy-pasting individual values.
+- [ ] **Start the app** with `make dev` (or `make docker-up`, and remember `make docker-down`).
+- [ ] In a second terminal, run `make workshop-final-check` to verify readiness.
+- [ ] Confirm the development storefront (http://localhost:8080) and
       the checkout API (http://localhost:8081/health) respond.
 - [ ] Confirm the production storefront (http://localhost:8090) and
       the checkout API (http://localhost:8091/health) respond.
 
 ## Outcome / success
 
-`make self-check` prints your **project name (`project-NNN`)** and **flag prefix (`pNNN_`)** in the
-banner and shows green checkmarks for the checks that apply to you — the app boots and (for
-self-paced attendees) your project and its `development` / `production` environments exist. The
-store loads in the browser. You're now at the same known-good starting line as everyone else,
-ready to connect your AI assistant in the 4th step.
+`make workshop-final-check` ends with a clear verdict — **"You are good to go!"** (green),
+**"I found some warnings"** (yellow), or **"Something is broken"** (red) — followed by a summary
+with your **project name (`project-NNN`)**, your **flag prefix (`pNNN_`)**, a clickable link
+straight to **your flags** in the Unleash UI, and ready-to-copy `export` commands for the MCP
+server (you'll use those in the next step). The app boots, your project and its `development` /
+`production` environments exist, and the store loads in the browser. You're now at the same
+known-good starting line as everyone else, ready to connect your AI assistant in the 4th step.
 
 > This step has no AI prompts — it's a plain setup. Keep the app running for the rest of the workshop.

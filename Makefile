@@ -1,12 +1,13 @@
 # Unofficial FeatureOps Gift Store — entry point for every task.
 # Feature flags run against a CLOUD (remote) Unleash instance — there is no local Unleash.
 #
-# Three roles, three paths:
-#   • Attendee · localhost (default) — Node.js + pnpm:  make setup → make dev
-#   • Attendee · Docker             — Docker only:      make docker-up
-#   • Maintainer                    — full toolchain:   make maint-* targets
-# Unleash provisioning (make unleash-create / unleash-destroy) is for self-paced
-# attendees and maintainers — it needs Terraform + the admin TF_VAR_* token.
+# Every attendee runs the same workshop flow; only "run the app" differs:
+#   make workshop-pre-check → make workshop-configure → (make dev | make docker-up) → make workshop-final-check
+#   • Attendee · localhost (default) — Node.js + pnpm:  run the app with make dev
+#   • Attendee · Docker             — Docker:           run the app with make docker-up
+#   • Maintainer                    — full toolchain:   make maint-* / make unleash-* targets
+# Unleash provisioning (make unleash-create / unleash-destroy) is maintainer tooling —
+# it needs Terraform + the admin TF_VAR_* token.
 
 .DEFAULT_GOAL := help
 
@@ -44,13 +45,13 @@ endif
 # checks and recipes — and the import/destroy scripts inherit them. The PRODUCTION app
 # tokens are exported too so `pnpm dev` can launch the side-by-side production instance.
 -include .env
-export TF_VAR_unleash_base_url TF_VAR_unleash_token \
+export TF_VAR_unleash_base_url TF_VAR_unleash_token TF_VAR_facilitator_email \
        VITE_UNLEASH_CLIENT_KEY_PRODUCTION UNLEASH_API_TOKEN_PRODUCTION
 
 # Attendee project number (drives the pNNN_ flag prefix); defaults to 001 before .env exists.
 PNUM := $(or $(strip $(UNLEASH_PROJECT_NUMBER)),001)
 
-.PHONY: help all self-check setup install dev clean \
+.PHONY: help workshop-pre-check workshop-configure workshop-final-check setup install dev clean \
         docker-pull docker-up docker-down docker-image docker-logs \
         unleash-create unleash-destroy \
         master-kill-switch master-kill-switch-web \
@@ -65,56 +66,55 @@ help:
 	@echo "Unofficial FeatureOps Gift Store — feature-flagged checkout demo (remote Unleash)"
 	@echo "================================================================================"
 	@echo ""
-	@echo "QUICK START — clone, then:"
-	@echo "  make all              Install, build, and run the app on the host (Ctrl+C to stop)"
-	@echo "  make self-check       Verify readiness + show your project name / flag prefix"
+	@echo "WORKSHOP — the attendee flow, in order:"
+	@echo "  make workshop-pre-check    Install deps + check your machine is ready (do this ahead of time)"
+	@echo "  make workshop-configure    Create a PAT, then auto-fill .env (tokens, URLs, project) via the API"
+	@echo "  make dev | make docker-up  Run the app (localhost or Docker)"
+	@echo "  make workshop-final-check  Verify readiness + print your project, flags URL, and MCP exports"
+	@echo "  (make setup is an alias for make workshop-pre-check)"
 	@echo ""
 	@echo "ATTENDEE · localhost (default) — Node.js + pnpm (auto-falls back to npm), no Docker"
-	@echo "  make setup            Install dependencies and create .env"
 	@echo "  make dev              Run development + production web/api (shared paybro) on the host"
 	@echo "  make clean            Remove build artifacts"
 	@echo ""
-	@echo "ATTENDEE · Docker — Docker only, no Node toolchain"
+	@echo "ATTENDEE · Docker — run the app in containers instead of make dev (still run pre-check + configure first)"
 	@echo "  make docker-pull      Pre-pull base images + pre-build (do this ahead of time)"
 	@echo "  make docker-image     Build Docker images"
 	@echo "  make docker-up        Build and run all services in Docker"
 	@echo "  make docker-down      Stop and remove the containers"
 	@echo "  make docker-logs      Tail the container logs"
 	@echo ""
-	@echo "UNLEASH PROVISIONING — self-paced attendees & maintainers"
-	@echo "  (needs terraform + TF_VAR_unleash_base_url / TF_VAR_unleash_token in .env)"
-	@echo "  make unleash-create   Provision project/users/envs + import flags + write .env tokens"
-	@echo "  make unleash-destroy  Archive flags and tear everything down"
-	@echo ""
 	@echo "MAINTAINER — develop & expand the repo (full toolchain)"
 	@echo "  make maint-check      Format, lint (app + scripts), build, test, typecheck"
 	@echo "  make maint-lint       Lint app + scripts    ·  make maint-fmt    Format everything"
 	@echo "  make maint-test       Run tests             ·  make maint-build  Production build"
+	@echo "  make unleash-create   Provision project/users/envs + import flags + write .env tokens"
+	@echo "  make unleash-destroy  Archive flags and tear everything down"
+	@echo "  (provisioning needs terraform + TF_VAR_unleash_base_url / TF_VAR_unleash_token in .env)"
 	@echo ""
 	@echo "Apps (development):  web :8080  ·  api :8081 (/health,/metrics)"
 	@echo "Apps (production):   web :8090  ·  api :8091"
 	@echo "Providers (shared):  paybro :8400  ·  dashed :8401"
-	@echo "Self-paced? Start a free trial: https://www.getunleash.io/pricing"
 
 # =====================================================================
-# One-shot setup (the homework entry point)
+# Workshop (attendee flow)
 # =====================================================================
-# The default attendee experience is localhost (Node.js + pnpm) — NOT Docker.
-# `make all` installs, builds, and runs the app on the host; Docker stays the
-# opt-in alternative (`make docker-up`). Verify readiness in another terminal
-# with `make self-check`, since the dev server runs in the foreground.
-all: ensure-env install shared-build
-	@echo ""
-	@echo "✅ Setup complete.  Project: project-$(PNUM)   ·   flag prefix: p$(PNUM)_"
-	@echo "   Starting the app on the host (Ctrl+C to stop)…"
-	@echo "   In another terminal, verify readiness:  make self-check"
-	@echo ""
-	@$(MAKE) dev
+# 1) Ahead of time (homework): install dependencies, then check the machine is ready
+#    (required tools, free ports, no stray Unleash env vars).
+workshop-pre-check: install
+	@bash support/scripts/workshop-pre-check.sh
 
-# Verify the environment is ready (assistant CLI, admin token, app boots, project+envs)
-# and print your project name + flag-name prefix.
-self-check:
-	@bash support/scripts/self-check.sh
+# `make setup` is kept as an alias for the pre-check (the old entry-point name).
+setup: workshop-pre-check
+
+# 2) Create .env (if needed) and fill it from the Unleash API using your own PAT —
+#    no copy-pasting tokens, URLs, or your project number.
+workshop-configure: ensure-env
+	@bash support/scripts/workshop-configure.sh
+
+# 4) Verify readiness and print your project, your flags URL, and the MCP export commands.
+workshop-final-check:
+	@bash support/scripts/workshop-final-check.sh
 
 # =====================================================================
 # Attendee · localhost (default, no prefix)
@@ -122,14 +122,10 @@ self-check:
 install:
 	$(call pm_install)
 
-setup: install ensure-env
-	@echo ""
-	@echo "✅ Dependencies installed and .env file is ready to edit during the workshop!"
-
 # Run the three apps on the host. No lint gate — keep it fast for attendees.
 dev: ensure-env shared-build
 	@grep -Eq '^UNLEASH_API_TOKEN=.+' .env || \
-	  echo "⚠  Unleash tokens are not set in .env — see 'make setup' for how to get them."
+	  echo "⚠  Unleash tokens are not set in .env — run 'make workshop-configure' to fill them."
 	$(call pm_run,dev)
 
 clean:
@@ -173,7 +169,7 @@ docker-logs:
 	docker compose logs -f
 
 # =====================================================================
-# Unleash provisioning (self-paced attendees & maintainers; needs Terraform + TF_VAR_*)
+# Maintainer · Unleash provisioning (needs Terraform + TF_VAR_*)
 # =====================================================================
 unleash-create: ensure-env ensure-tf-env
 	@echo "→ Provisioning users / project / group and minting app tokens with Terraform…"

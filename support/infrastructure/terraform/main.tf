@@ -1,12 +1,14 @@
 # Provisions the workshop's platform-engineering setup as code, ONE ISOLATED STACK PER USER:
 #   - users read from a CSV (email,name,surname)
 #   - per user: a project (project-NNN) with development + production environments enabled
-#   - production guarded by change requests (1 approval), which the user can approve
-#   - per user: a single-member group that owns that user's project, read-only everywhere else
+#   - production guarded by change requests (1 approval), approved by the facilitator/admin
+#     (the attendee can't approve their own — segregation of duties)
+#   - per user: a group that owns that user's project (read-only everywhere else), whose members
+#     are the attendee plus the shared facilitator/admin
 #
 # The per-user number (NNN) is derived from the CSV row index, so the CSV needs no extra column.
-# Each group has exactly ONE member, which also sidesteps the provider's "inconsistent result"
-# bug on multi-member group user-id ordering.
+# Each group lists its members in a fixed order (attendee, then facilitator), which keeps the
+# provider's result stable and sidesteps its "inconsistent result" bug on group user-id ordering.
 
 locals {
   users = csvdecode(file("${path.module}/${var.users_csv}"))
@@ -24,6 +26,15 @@ data "unleash_role" "viewer" {
 
 data "unleash_role" "owner" {
   name = "Owner" # project role: full control of the team's project
+}
+
+# The workshop facilitator/admin, looked up by email (must already exist on the instance —
+# it's the provisioning admin). Added to every team group so the group can approve each
+# attendee's production change requests. Attendees cannot approve their OWN change request
+# (Unleash blocks non-admin self-approval), so the facilitator is the effective approver —
+# segregation of duties. Override the address via TF_VAR_facilitator_email.
+data "unleash_user" "facilitator" {
+  email = var.facilitator_email
 }
 
 # Reference the instance's default environments (must already exist). Using data
@@ -112,15 +123,22 @@ resource "unleash_role" "change_request_approver" {
   ]
 }
 
-# One group per user: read-only globally (Viewer root role) with that single user as its
-# only member. A single-member list has no ordering for the provider to disagree about,
-# which avoids its "inconsistent result" bug on multi-member group user ids.
+# One group per user: read-only globally (Viewer root role). Two members, in a fixed order:
+# the attendee, then the shared facilitator/admin. The facilitator joins every group so the
+# group's Change Request Approver role (see project_access below) lets them approve the
+# attendee's production change requests — the attendee can't approve their own. The order is
+# deterministic (attendee first), so the provider has nothing to disagree about; this is the
+# careful version of the old single-member rule that dodged the provider's "inconsistent
+# result" bug on multi-member group user-id ordering.
 resource "unleash_group" "team" {
   for_each = local.users_by_number
 
   name      = "Team ${each.key}"
   root_role = data.unleash_role.viewer.id
-  users     = [tonumber(unleash_user.users[each.key].id)]
+  users = [
+    tonumber(unleash_user.users[each.key].id),
+    tonumber(data.unleash_user.facilitator.id),
+  ]
 
   # Force the group to be destroyed *before* the custom role. Otherwise destroy
   # tears the group and the role down concurrently, and the role's DELETE can
@@ -129,8 +147,9 @@ resource "unleash_group" "team" {
   depends_on = [unleash_role.change_request_approver]
 }
 
-# Grant each group Owner on its own project, plus the change-request approver role so
-# the project's owner can approve the production change requests they raise.
+# Grant each group Owner on its own project, plus the change-request approver role. The group
+# includes the facilitator/admin, so the group can approve the production change requests the
+# attendee raises — the attendee cannot approve their OWN (segregation of duties).
 resource "unleash_project_access" "team" {
   for_each = local.users_by_number
 

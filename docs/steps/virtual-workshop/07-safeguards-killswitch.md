@@ -37,3 +37,11 @@ off in the production environment of project "project-<NNN>" right now, and conf
 > The error signal is non-deterministic (Dashed fails a fraction of requests), so retry a few
 > checkouts to make the metric cross the threshold. The kill-switch sub-step also works on its
 > own if the safeguard is slow to fire.
+
+> **Why you can't see the wiring (by design).** The master kill switch behind this story is built
+> from an instance-level **Signal endpoint** and per-project **Actions** (in project settings).
+> Unleash has **no read-only permission** for either — viewing or managing Signals and Actions
+> requires the **`ADMIN`** root permission. As a deliberately scoped, `Viewer`-root attendee
+> (the same scoping you'll see called out in step 8) you won't find them in the UI, and that's
+> least privilege working as intended: the facilitator/admin owns that wiring so a single bad
+> click can't reach it.

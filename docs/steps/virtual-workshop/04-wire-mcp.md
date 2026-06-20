@@ -3,12 +3,25 @@
 Connect your AI coding assistant to the **remote Unleash MCP server** so it can read and manage
 feature flags directly.
 
+> [!NOTE]
+> **Recommended in production: OAuth2 Dynamic Client Registration (DCR).** The remote Unleash MCP
+> server supports OAuth2 DCR, and that is the **recommended** way to authenticate a client — the
+> assistant registers itself and obtains tokens through an interactive browser sign-in, with no
+> long-lived secret pasted into config. **It requires SSO**, however, and that is **not workable in
+> this workshop**: we don't control which email domains attendees sign in with, so there is no
+> single SSO provider we can wire everyone through. We therefore fall back to a **Personal Access
+> Token (PAT) presented as a `Bearer` token** (what Step 3 configured). For your own real instance
+> with SSO configured, prefer OAuth2 DCR over a static PAT.
+
 ## Steps
 
-- [ ] Set the two MCP values in `.env` **and export** them in your shell so your assistant inherits them:
-      - `UNLEASH_MCP_SERVER_URL` (e.g. `https://<region>.app.unleash-hosted.com/<instance>/api/admin/mcp`)
-        - That will be given by the lecturer (slide / chat).
-      - `UNLEASH_MCP_PAT_TOKEN` (you need to create your own _Personal Access Token (PAT)_).
+- [ ] `make workshop-configure` (Step 3) already wrote `UNLEASH_MCP_SERVER_URL` and
+      `UNLEASH_MCP_PAT_TOKEN` into `.env`. **Export them** in the shell your assistant launches
+      from so it inherits them — `make workshop-final-check` prints ready-to-copy `export`
+      commands for exactly this; paste those, or run:
+      ```bash
+      export $(grep -E '^UNLEASH_MCP_(SERVER_URL|PAT_TOKEN)=' .env | xargs)
+      ```
 - [ ] Use the committed config template for your assistant — it already points at the remote
       server with a `Bearer` token:
       - **Claude Code** → `.mcp.json`
@@ -33,7 +46,7 @@ committed config and `.agent/AGENTS.md`.
 <summary>Example prompt — list the tools</summary>
 
 ```
-List the tools available from the Unleash MCP server, and briefly say what each one does.
+List all the tools available in the unleash MCP server, and briefly say what each one does.
 ```
 </details>
 
@@ -41,8 +54,7 @@ List the tools available from the Unleash MCP server, and briefly say what each 
 <summary>Example prompt — verify connectivity against your project</summary>
 
 ```
-Using the Unleash MCP server, tell me which flags are available in the projects scoped to my permissions 
-and their state.
+With the use of unleash MCP, scan the codebase, find all the flags, and then prepare a table with their state in Unleash for environments in the project available based on my permissions. As an additional column, add a lifecycle stage for each flag.
 ```
 </details>
 

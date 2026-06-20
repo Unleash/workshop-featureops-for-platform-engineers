@@ -15,6 +15,9 @@ governance layer like Role-Based Access Control (RBAC) and change requests, that
 - [ ] Notice the governance reveals: you've been acting as a **scoped, non-admin user**, and
       changing **production** requires a **change request** — the custom role, your access, and
       the CR requirement were all provisioned via Terraform before you arrived.
+- [ ] Notice the **segregation of duties** (it's a feature, not a snag): you can **open** a
+      production change request, but you **cannot approve your own**. Ask the facilitator/admin
+      (**wojtek.gawronski@getunleash.io**) — who shares your team group — to approve and apply it.
 
 ## Outcome / success
 
@@ -35,3 +38,9 @@ flag-guarded branch from the code, archive the flag, and confirm the code path i
 
 > If you're short on time, the `cleanup_flag` reveal is the takeaway — the audit/RBAC reveal is
 > a short narration you can read above without clicking.
+
+> **The two escape hatches.** Only an **ADMIN** user can approve and apply *their own* change
+> request — that's the deliberate exception to segregation of duties. Separately, a holder of the
+> `SKIP_CHANGE_REQUEST` permission can bypass the change-request flow entirely (that's how the
+> master-kill-switch actor from step 7 flips production off instantly). Everyone else opens a change
+> request and a second person approves it.

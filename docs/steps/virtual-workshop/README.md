@@ -19,5 +19,5 @@ Work at your own pace inside each step, and the lecturer will make sure we synch
 | 9 | Close: the paving repo + Monday action                 | 8 min  | _presenter-led — no hands-on_                                  |
 
 **Throughout:** your flags, segments, impact metrics, and context fields are scoped to **your** project named 
-`project-NNN`. They are named with the `pNNN_` prefix. You'll be given your project number, the MCP server URL, 
-and a personal access token by the lecturer via slides and on the chat.
+`project-NNN`. They are named with the `pNNN_` prefix. You create your own Personal Access Token (PAT) and run 
+`make workshop-configure`, which detects your project number and fills in the Unleash URLs and tokens for you (Step 3).

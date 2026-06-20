@@ -15,3 +15,9 @@ variable "users_csv" {
   type        = string
   default     = "users.csv"
 }
+
+variable "facilitator_email" {
+  description = "Email of the workshop facilitator/admin added to every team group to approve attendees' production change requests (attendees cannot approve their own — segregation of duties). Override via TF_VAR_facilitator_email."
+  type        = string
+  default     = "wojtek.gawronski@getunleash.io"
+}

@@ -23,6 +23,8 @@ Demo contains a few feature flags built-in already, but the main goal is to demo
 | Docker Compose | ^5.0.0          | ✅        |
 | pnpm           | ^11.8.0         | ✅        |
 
+In addition to the above, workshop execution (including scripts) requires `git`, `curl`, and `jq` to be installed.
+
 ### For the attendees of a virtual hands-on workshop ...
 
 If you want to prepare for the workshop ahead of time, `git clone` this repository. Then, inside the cloned repository, run the following command – and follow the instructions printed in the console:

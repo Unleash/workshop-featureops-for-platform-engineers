@@ -2,9 +2,8 @@
 inclusion: always
 ---
 
-# FeatureOps agent guidelines
+# FeatureOps AI coding agents guidelines
 
-The canonical guidelines for this repository are maintained in `.agent/AGENTS.md` and included
-below. Edit the rules there, not here.
+The canonical guidelines for this repository are maintained in `AGENTS.md` and included below. Follow the rules there, not here.
 
-#[[file:.agent/AGENTS.md]]
+#[[file:../AGENTS.md]]
