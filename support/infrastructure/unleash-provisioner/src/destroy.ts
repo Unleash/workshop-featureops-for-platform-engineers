@@ -4,8 +4,9 @@
  *   1. archive the feature flags (CR-guarded production lifted/restored) — per project
  *   2. delete the pNNN_internal-users segment (before the pNNN_email field it references)
  *   3. delete the project-scoped context fields (pNNN_region, pNNN_email)
- * then delete the instance-global resources once: the Layer tag type, the Golden Release Template,
- * and the master-kill-switch signal endpoint (its per-project Actions are removed in the loop).
+ * then undo the instance-global actions once: delete the Layer tag type, the Golden Release
+ * Rollout, and the master-kill-switch signal endpoint (its per-project Actions are removed in the
+ * loop), and revive the built-in "Default" project.
  *
  * The actor service account, its role, and project access are owned by Terraform and removed by
  * `terraform destroy` — which the Makefile runs AFTER this, so the Actions are gone first.
@@ -19,6 +20,7 @@ import { deleteSegments } from './setup/segments';
 import { deleteContextFields } from './setup/context-fields';
 import { deleteTagType } from './flags/tags';
 import { deleteReleaseTemplate } from './setup/release-templates';
+import { reviveDefaultProject } from './setup/default-project';
 import { deleteMasterKillSwitchSignal } from './setup/master-kill-switch-signal';
 import { deleteMasterKillSwitchAction } from './setup/master-kill-switch-actions';
 
@@ -36,6 +38,7 @@ const run = async (): Promise<void> => {
     await deleteTagType();
     await deleteReleaseTemplate();
     await deleteMasterKillSwitchSignal();
+    await reviveDefaultProject();
     console.log('[destroy] Done.');
   } catch (error: unknown) {
     console.error('[destroy] Failed:', error);

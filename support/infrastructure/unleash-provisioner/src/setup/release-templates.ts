@@ -1,5 +1,5 @@
 /**
- * The "Golden Release Template" — the vetted, org-wide rollout shape every AI-generated change
+ * The "Golden Release Rollout" — the vetted, org-wide rollout shape every AI-generated change
  * can inherit (Segment 6, "Author the release policy"). Release plan templates are INSTANCE-level
  * (one shared template for every attendee project — the Terraform provider can't express them, and
  * the API has no project scope), so this is created/deleted ONCE, not per project, like the global
@@ -125,7 +125,7 @@ const listTemplates = async (): Promise<TemplateSummary[]> => {
 };
 
 /**
- * Create the Golden Release Template (idempotent). Templates get a server-generated id and the API
+ * Create the Golden Release Rollout (idempotent). Templates get a server-generated id and the API
  * permits duplicate names, so we skip when one already exists rather than relying on a 409.
  */
 export const createReleaseTemplate = async (): Promise<void> => {
@@ -148,7 +148,7 @@ export const createReleaseTemplate = async (): Promise<void> => {
   }
 };
 
-/** Delete the Golden Release Template once (idempotent — a missing template is fine). */
+/** Delete the Golden Release Rollout once (idempotent — a missing template is fine). */
 export const deleteReleaseTemplate = async (): Promise<void> => {
   const template = (await listTemplates()).find((t) => t.name === TEMPLATE_NAME);
   if (!template) {

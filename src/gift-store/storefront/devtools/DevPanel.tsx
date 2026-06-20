@@ -155,7 +155,7 @@ export const DevPanel = ({
       <span className="font-bold">⚠ This is development testing tool</span>: not part of the store
       checkout. Like the{' '}
       <a
-        href="https://github.com/Unleash/unleash-toolbar"
+        href="https://github.com/Unleash/toolbar"
         target="_blank"
         rel="noreferrer"
         className="font-semibold underline decoration-dotted underline-offset-2 hover:text-amber-50"

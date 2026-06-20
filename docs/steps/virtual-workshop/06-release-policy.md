@@ -7,7 +7,7 @@ strategy.
 ## Steps
 
 - [ ] Locate your project-specific segment in the Unleash UI (segment `pNNN_internal-users`).
-- [ ] Apply the **Golden Release Template** (provisioned for the whole instance) to the flag. It
+- [ ] Apply the **Golden Release Rollout** (provisioned for the whole instance) to the flag. It
       adds four milestones: **Canary (single user) → Internal users only → 50% → Generally
       available** for everyone.
 - [ ] Adjust the **first two** milestones for your project (the template says so in its

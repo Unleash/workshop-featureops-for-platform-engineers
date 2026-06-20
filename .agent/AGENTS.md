@@ -48,7 +48,7 @@ Terraform + a Node `unleash-provisioner` (`support/infrastructure/`).
 - **Dashed failure injection** — `src/payment-providers/dashed/support/failure-injection.ts`
   (session-init failures all envs, capture failures in production) so a safeguard has a live
   error signal.
-- **Golden Release Template** — provisioned instance-wide by
+- **Golden Release Rollout** — provisioned instance-wide by
   `support/infrastructure/unleash-provisioner/src/setup/release-templates.ts`.
 
 **Intentionally NOT wired (this is the workshop exercise — wire it behind a flag):**
@@ -103,7 +103,7 @@ Scope new resources correctly — do not try to make an instance-level entity pr
 
 | Scope | Entities |
 | --- | --- |
-| **Instance-level** (shared across all projects) | Environments (`development`, `production`); tag types (e.g. `Layer`); **release plan templates** (incl. the Golden Release Template). |
+| **Instance-level** (shared across all projects) | Environments (`development`, `production`); tag types (e.g. `Layer`); **release plan templates** (incl. the Golden Release Rollout). |
 | **Project-level** (per attendee, `pNNN_`-prefixed) | Feature flags; segments (`pNNN_internal-users`); context fields (`pNNN_region`, `pNNN_email`); project API tokens; change-request config; custom roles + project access. |
 
 Note: the Unleash **Terraform provider cannot** create project-scoped segments or context
