@@ -8,9 +8,9 @@ It's time to close the loop: flags are inventory. You will retire another flag c
   - First, let's make sure it's rolled out in _development_ **AND** _production_, by enabling flag in both environments.
     - For the latter environment, we have to add that change to a _change request_ draft. Notice the **segregation of duties** (it's a feature, not a snag): you can **open** a production change request, but you **cannot approve your own**. Ask the facilitator/admin (**workshop lecturer**, add that person as a **reviewer**) — who shares your team group — to approve and apply it.
 - [ ] Verify the presence of the promotion code text box in both applications, and then mark feature as completed - by choosing we will keep the feature.
-  - You should hover over the _green lifecycle phase_ icon (1), and then click the button (2). 
+  - You should hover over the _green lifecycle phase_ icon (_1_), and then click the button (_2_). 
     - ![Mark feature as completed](./assets/mark-as-completed.png)
-  - After choosing the decision (*keep the feature*), you will see that _lifecycle icon_ changed to _red_ color. 
+  - After choosing the decision (*keep the feature*), you will see that _lifecycle icon_ changed to _red_ color - you can hover over that icon (_1_) to learn more. 
     - ![Feature is ready to cleanup](./assets/ready-to-cleanup.png)
 - [ ] Now, it's time to ask your assistant to use `cleanup_flag` on flags ready to clean.
   - Agent should generate safe-removal instructions for your fully rolled-out flag: remove the now-dead guarded branch, confirm the code path is clean, and then suggest to archive the flag in _Unleash_.
