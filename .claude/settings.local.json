@@ -13,6 +13,11 @@
       "mcp__unleash__toggle_flag_environment",
       "mcp__unleash__remove_flag_strategy",
       "mcp__unleash__cleanup_flag"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Bash(rm)",
+      "Bash(git rm)"
     ]
   }
 }

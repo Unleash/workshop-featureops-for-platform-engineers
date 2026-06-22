@@ -28,7 +28,6 @@ coverage/
 
 # Logs and assets:
 docs/development.md
-*.pdf
 *.csv
 *.log
 

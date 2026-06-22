@@ -178,10 +178,14 @@ fi
 
 printf '\n%sYour workshop project%s\n' "$BOLD" "$RESET"
 printf '  Project:      %s%s%s\n' "$BOLD" "$PROJECT_ID" "$RESET"
-printf '  Flag prefix:  %s%s%s   (every flag/segment/context field you create starts with this)\n' "$BOLD" "$PREFIX" "$RESET"
+printf '  Flag prefix:  %s%s%s   (every flag/segment/context field/impact metric you create starts with this)\n' "$BOLD" "$PREFIX" "$RESET"
 if [ -n "$ADMIN_URL" ]; then
   printf '  Your flags:   %s/projects/%s\n' "$ADMIN_URL" "$PROJECT_ID"
 fi
+
+printf '\n%sYour locally hosted applications%s\n' "$BOLD" "$RESET"
+printf '  Development:      %shttp://localhost:8080%s\n' "$BOLD" "$RESET"
+printf '  Production :      %shttp://localhost:8090%s\n' "$BOLD" "$RESET"
 
 if [ -n "$MCP_URL" ] && [ -n "$MCP_TOKEN" ]; then
   printf '\n%sConnect your AI assistant — paste into the shell it launches from:%s\n' "$BOLD" "$RESET"

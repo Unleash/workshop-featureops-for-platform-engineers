@@ -202,4 +202,5 @@ if [ "$warn_count" -gt 0 ]; then
 else
   printf '%s✓ .env configured for %s%s\n' "$GREEN" "$PROJECT_ID" "$RESET"
 fi
-printf '  Next: %smake dev%s, then %smake workshop-final-check%s in a second terminal.\n\n' "$BOLD" "$RESET" "$BOLD" "$RESET"
+printf '  Next: %smake dev%s (or %smake docker-up%s), then %smake workshop-final-check%s in a second terminal.\n\n' \
+       "$BOLD" "$RESET" "$BOLD" "$RESET" "$BOLD" "$RESET"
