@@ -4,12 +4,12 @@ Connect your AI coding assistant to the **remote Unleash MCP server** so it can 
 
 > [!NOTE]
 > **Recommended in production: OAuth2 Dynamic Client Registration (DCR).**
-> 
-> The remote Unleash MCP server supports OAuth2 DCR, and that is the **recommended** way to authenticate a client — the assistant registers itself and obtains tokens through an interactive browser sign-in, with no long-lived secret pasted into config.
-> 
+>
+> The remote Unleash MCP server supports OAuth2 DCR, and that is the **recommended** way to authenticate a client — the assistant registers itself and gets tokens through an interactive browser sign-in, with no long-lived secret pasted into config.
+>
 > **It requires SSO**, however, and that is **not workable in this workshop**: we don't control which email domains attendees sign in with, so there is no
 single SSO provider we can wire everyone through. We therefore fall back to a **Personal Access Token (PAT) presented as a `Bearer` token** (what Step 3 configured).
-> 
+>
 > For your own real instance with SSO configured, prefer OAuth2 DCR over a static PAT.
 
 ## Steps
@@ -39,7 +39,7 @@ A read-only call (e.g. checking a seeded flag's state) succeeds against **your**
 <summary><strong>Example prompt</strong>: List the tools available in Unleash MCP server</summary>
 
 ```
-List all the tools available in the unleash MCP server, and briefly describe what each tool does.
+List all the tools available in the Unleash MCP server, and briefly describe what each tool does.
 ```
 </details>
 

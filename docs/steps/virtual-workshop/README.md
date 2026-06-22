@@ -22,4 +22,4 @@ Work at your own pace inside each step and follow the lecturer's instructions be
 **Notes:**
 - Your flags, segments, impact metrics, and context fields are scoped to **your** project named `project-NNN`.
 - They are named with the `pNNN_` prefix (e.g. `p001_internal-users`).
-- You create your own *Personal Access Token (PAT)* and run `make workshop-configure`, which detects your project number and fills in the Unleash URLs and tokens for you (Step 3).
+- You create your own *Personal Access Token (PAT)* and run `make workshop-configure`, which detects your project number and fills in the Unleash URLs and tokens for you (_Step 3_).

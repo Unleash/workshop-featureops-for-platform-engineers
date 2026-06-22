@@ -4,11 +4,11 @@ Let's make the rollout self-defending with a safeguard that pauses a bad release
 
 ## Steps
 
-- [ ] Confirm the app emits the impact metric by creating an *Impact Metrics* chart. 
+- [ ] Confirm the app emits the impact metric by creating an *Impact Metrics* chart.
   - The checkout SDK pushes `pNNN_checkout_error_total` (and related provider-error counters) to the _Unleash_ instance.
-- [ ] On your flag's release plan, add a **safeguard** that references your metric. 
+- [ ] On your flag's release plan, add a **safeguard** that references your metric.
   - Use a tight, easy-to-trip override — e.g. **count of `pNNN_checkout_error_total` > 0 in the last minute** (the short evaluation window will make it fire quickly).
-- [ ] Walk the loop: with the rollout healthy, advance the milestone. 
+- [ ] Walk the loop: with the rollout healthy, advance the milestone.
   - Then **drive errors** by routing checkouts through **Dashed**; that provider fails occasionally, which will cause errors metric to spike.
 - [ ] Watch the safeguard trigger automatically, no one had to babysit the dashboard.
   - Safeguard either **pause the milestone progression** or **disable the flag in this environment** automatically, depending on your choice above.

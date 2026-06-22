@@ -20,12 +20,12 @@ The demo contains a few feature flags built-in already, but the main goal is to 
 ### Dependencies
 
 | Tool           | Minimum version | Required? |
-|----------------|-----------------|----------|
-| Node.js        | ^22.0.0         | ✅       |
-| GNU Make       | _any_           | ✅       |
-| Docker         | ^29.0.0         |          |
-| Docker Compose | ^5.0.0          |          |
-| pnpm           | ^11.8.0         |          |
+|----------------|-----------------|-----------|
+| Node.js        | ^22.0.0         | ✅         |
+| GNU Make       | _any_           | ✅         |
+| Docker         | ^29.0.0         |           |
+| Docker Compose | ^5.0.0          |           |
+| pnpm           | ^11.8.0         |           |
 
 In addition to the above, you'll need `git`, `curl`, and `jq` too.
 

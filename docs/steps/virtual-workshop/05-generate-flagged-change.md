@@ -12,7 +12,7 @@ Our goal for this step is to induce the *aha moment*: let the agent write a genu
 
 ## Outcome / success
 
-A new feature flag exists in your Unleash project, created by the agent and off by default. 
+A new feature flag exists in your Unleash project, created by the agent and off by default.
 
 The payment-provider-switch code is committed but **wrapped** behind it (the seam is `src/gift-store/checkout/payments/router.ts`). Deploying this code ships nothing to users until *you* turn the flag on: the risky change is decoupled from release, and the decoupling happened inside the generation loop, not as a manual afterthought.
 
@@ -35,7 +35,6 @@ Summarize the change you just made: the flag name and type, why the risk scorer 
 ## Tips and Tricks
 
 > Keep the flag **off** at the end of this step. You'll give it a real rollout policy in the 6th step.
-
 
 ## Next step
 
