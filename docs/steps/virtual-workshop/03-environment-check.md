@@ -22,10 +22,21 @@ Get to a known-good state: your `.env` is filled, the sample app is running loca
 
 ## Outcome / success
 
-`make workshop-final-check` ends with a clear verdict — **"You are good to go!"** (green), **"I found some warnings"** (yellow), or **"Something is broken"** (red) — followed by a summary with your **project name (`project-NNN`)**, your **flag prefix (`pNNN_`)**, a clickable link straight to **your flags** in the Unleash UI, application links (for _development_ and _production_ environments), and ready-to-copy `export` commands for the MCP server (you'll use those in the next step). The app boots, your project and its `development` / `production` environments exist, and the store loads in the browser.
+`make workshop-final-check` ends with a clear verdict — **"You are good to go!"** (green), **"I found some warnings"** (yellow), or **"Something is broken"** (red) — followed by:
+- a summary with your **project name (`project-NNN`)**
+- your **flag prefix (`pNNN_`)**
+- a clickable link straight to **your flags** in the Unleash UI
+- application links (for _development_ and _production_ environments)
+- ready-to-copy `export` commands for the MCP server (you'll use those in the next step).
+
+The app boots, your project and its `development` / `production` environments exist, and the store loads in the browser.
 
 You're now at the same known-good starting line as everyone else, ready to connect your AI assistant in the 4th step.
 
 ## Tips and Tricks
 
 > This step has no AI prompts — it's a plain setup. **Keep the app running for the rest of the workshop**.
+
+## Next step
+
+[Step 4: Wire the MCP server to your assistant](04-wire-mcp.md).

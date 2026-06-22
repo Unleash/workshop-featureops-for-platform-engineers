@@ -24,19 +24,22 @@ single SSO provider we can wire everyone through. We therefore fall back to a **
   - **GitHub Copilot (VS Code)** → `.vscode/mcp.json`
   - **Kiro** → `.kiro/settings/mcp.json`
   - **OpenCode** → `opencode.json`
+  - **Gemini CLI** → `.gemini/settings.json`
   - **Codex** → `.codex/config.toml` (_autoloaded_ for trusted projects, but remember to set the `url`).
-- [ ] Reload / restart your assistant so it picks up the MCP server.
-- [ ] Ask the assistant to list its Unleash tools and confirm it sees all of them.
+- [ ] Reload your assistant so it picks up the MCP server.
+- [ ] Ask the assistant to list the Unleash tools and confirm it sees all of them.
 
 ## Outcome / success
 
-Your assistant reports the `unleash` MCP server as connected and lists at least the following tools: `evaluate_change`, `detect_flag`, `create_flag`, `wrap_change`, `set_flag_rollout`, `get_flag_state`, `toggle_flag_environment`, `remove_flag_strategy`, `cleanup_flag`. A read-only call (e.g. checking a seeded flag's state) succeeds against **your** project. The platform — not each developer — has shipped the connection, naming convention, and FeatureOps guidelines via the committed config and `AGENTS.md`.
+Your assistant reports the `unleash` MCP server as connected and lists at least the following tools: `evaluate_change`, `detect_flag`, `create_flag`, `wrap_change`, `set_flag_rollout`, `get_flag_state`, `toggle_flag_environment`, `remove_flag_strategy`, `cleanup_flag`.
+
+A read-only call (e.g. checking a seeded flag's state) succeeds against **your** project. The platform (not each developer) has shipped the connection, naming convention, and FeatureOps guidelines via the committed config and `AGENTS.md`.
 
 <details>
 <summary><strong>Example prompt</strong>: List the tools available in Unleash MCP server</summary>
 
 ```
-List all the tools available in the unleash MCP server, and briefly say what each one does.
+List all the tools available in the unleash MCP server, and briefly describe what each tool does.
 ```
 </details>
 
@@ -44,10 +47,14 @@ List all the tools available in the unleash MCP server, and briefly say what eac
 <summary><strong>Example prompt</strong>: Verify connectivity and build context about the flags for the projects available for you in the Unleash instance</summary>
 
 ```
-With the use of unleash MCP, scan the codebase, find all the flags, and then prepare a table with their state in Unleash for environments in the project available based on my permissions. As an additional column, add a lifecycle stage for each flag.
+Use the Unleash MCP server to scan the codebase, find all the flags, and then prepare a table with their state for all environments (in the project available based on my permissions). As an additional column, add a lifecycle stage for each flag.
 ```
 </details>
 
 ## Tips and Tricks
 
-> If the handshake fails, check that both env vars are exported in the same shell your assistant launched from, and that the token is a valid PAT for your instance.
+> If the MCP tool call fails, check that both env vars are exported in the same shell your assistant launched from, and that the token is a valid PAT for your instance.
+
+## Next step
+
+[Step 5: Generate a change with a flag (with the agent)](05-generate-flagged-change.md).
