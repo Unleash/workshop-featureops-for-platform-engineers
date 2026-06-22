@@ -11,7 +11,7 @@ const run = async (): Promise<void> => {
     if (ok) {
       console.log(`✓ Master kill switch signal accepted (HTTP ${status.toString()}).`);
       console.log(
-        '  Per-project actions fire in ~60s — the kill switch will turn OFF in dev + prod.',
+        '  Per-project actions fire in ~60s — the kill switch is now turned OFF in development and production.',
       );
     } else {
       console.error(`✗ Signal rejected (HTTP ${status.toString()}): ${body}`);

@@ -93,10 +93,10 @@
     <main>
       <h1>🛑 Master Kill Switch</h1>
       <p class="sub">
-        Disables the “real SWAG store link” kill switch in <strong>every</strong> project, across
+        Disables the <em>"Official Unleash Swag Store" link</em> kill switch in <strong>every</strong> project, across
         development and production. Actions fire in ~60s.
       </p>
-      <button id="fire" type="button">DISABLE ALL PROJECTS</button>
+      <button id="fire" type="button">DISABLE IN ALL PROJECTS</button>
       <div id="status"></div>
     </main>
     <script>
@@ -116,7 +116,7 @@
           if (response.ok && data.ok) {
             status.className = 'ok';
             status.textContent =
-              '✓ Signal accepted. The kill switch turns OFF in dev + prod within ~60s.';
+              '✓ Signal accepted. The kill switch is now turned OFF in development and production for all projects within ~60s.';
           } else {
             status.className = 'err';
             status.textContent = '✗ Rejected: ' + (data.error || data.body || response.status);
