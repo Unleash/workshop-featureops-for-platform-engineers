@@ -1,6 +1,6 @@
 # Step 5: Generate a change with a flag (with the agent)
 
-Our goal for this step is to induce the *aha moment*: let the agent write a genuinely risky change **and wrap it in a feature flag** inside the same generation loop — the platform's guidelines steer it, you don't hand-hold.
+Our goal for this step is to induce the *aha moment*: let the agent write a genuinely risky change **and wrap it in a feature flag** inside the same generation loop. The platform's guidelines steer it, you don't hand-hold.
 
 ## Steps
 
@@ -12,13 +12,15 @@ Our goal for this step is to induce the *aha moment*: let the agent write a genu
 
 ## Outcome / success
 
-A new feature flag exists in your Unleash project — created by the agent, off by default — and the payment-provider-switch code is committed but **wrapped** behind it (the seam is `src/gift-store/checkout/payments/router.ts`). Deploying this code ships nothing to users until *you* turn the flag on: the risky change is decoupled from release, and the decoupling happened inside the generation loop, not as a manual afterthought.
+A new feature flag exists in your Unleash project, created by the agent and off by default.
+
+The payment-provider-switch code is committed but **wrapped** behind it (the seam is `src/gift-store/checkout/payments/router.ts`). Deploying this code ships nothing to users until *you* turn the flag on: the risky change is decoupled from release, and the decoupling happened inside the generation loop, not as a manual afterthought.
 
 <details>
 <summary><strong>Example prompt</strong>: Implement the switch, flag-first</summary>
 
 ```
-Add a payment provider switch so checkout can route to either PayBro or Dashed (both are real providers in this repo; integration for Dashed is present in the code, but not yet wired). Before writing any code, use the unleash MCP server: first evaluate_change to decide whether this needs a feature flag, detect_flag to avoid duplicates, then create_flag and wrap_change. Create the flag in project "project-<NNN>" (my project number is <NNN>), keep it disabled, and follow the repo's flag naming convention. Explain which flag type you chose and why.
+Add a payment provider switch so checkout can route to either PayBro or Dashed (both are real providers in this repo; integration for Dashed is present in the code, but not yet wired). Before writing any code, use the Unleash MCP server: first evaluate_change to decide whether this needs a feature flag, detect_flag to avoid duplicates, then create_flag and wrap_change (in the project available based on my permissions). Keep it disabled, and follow the repo's flag naming convention. Explain which flag type you chose and why.
 ```
 </details>
 
@@ -26,10 +28,14 @@ Add a payment provider switch so checkout can route to either PayBro or Dashed (
 <summary><strong>Example prompt</strong>: Review what the agent did</summary>
 
 ```
-Summarize the change you just made: the flag name and type, why the risk scorer recommended a flag, the exact code path now guarded by it, and confirm the flag is disabled in project "project-<NNN>".
+Summarize the change you just made: the flag name and type, why the risk scorer recommended a flag, the exact code path now guarded by it, and confirm the flag is disabled (in the project available based on my permissions).
 ```
 </details>
 
 ## Tips and Tricks
 
-> Keep the flag **off** at the end of this step — you'll give it a real rollout policy in the 6th step.
+> Keep the flag **off** at the end of this step. You'll give it a real rollout policy in the 6th step.
+
+## Next step
+
+[Step 6: Author the release policy](06-release-policy.md).

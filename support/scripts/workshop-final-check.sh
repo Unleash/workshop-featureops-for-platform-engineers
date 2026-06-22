@@ -102,7 +102,7 @@ printf '%s───────────────────────�
 
 # --- 1. assistant CLI -------------------------------------------------------
 printf '\n%s1) AI assistant CLI%s\n' "$BOLD" "$RESET"
-ASSISTANTS="claude codex cursor-agent cursor opencode copilot kiro"
+ASSISTANTS="claude codex cursor-agent cursor opencode copilot kiro gemini"
 found_assistant=""
 for cli in $ASSISTANTS; do
   if command -v "$cli" >/dev/null 2>&1; then

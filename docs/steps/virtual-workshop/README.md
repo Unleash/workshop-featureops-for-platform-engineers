@@ -1,8 +1,11 @@
 # Virtual Workshop: Hands-on Handouts
 
-*The Golden Path to Ship AI-Generated Code Safely* — is a hands-on FeatureOps workshop. Each step listed below has a short handout: a **steps checklist**, the **outcome** that means you succeeded, and **example prompts** (if applicable, in the expandable accordions) for the steps you drive with your AI assistant.
+This is a hands-on FeatureOps workshop. Each step listed below has a short handout:
+- a **steps checklist**
+- the **outcome** that means you succeeded
+- **example prompts** for the steps you drive with your AI assistant.
 
-Work at your own pace inside each step, and the lecturer will make sure we synchronize before moving between them.
+Work at your own pace inside each step and follow the lecturer's instructions before moving forward.
 
 | # | Step                                                   | Time   | Handout                                                        |
 |---|--------------------------------------------------------|--------|----------------------------------------------------------------|
@@ -16,4 +19,7 @@ Work at your own pace inside each step, and the lecturer will make sure we synch
 | 8 | Lifecycle + Governance                                 | 8 min  | [08-lifecycle-governance.md](08-lifecycle-governance.md)       |
 | 9 | Close: the Paved Path repository + Summary             | 8 min  | _presenter-led — no hands-on_                                  |
 
-**Throughout:** your flags, segments, impact metrics, and context fields are scoped to **your** project named `project-NNN`. They are named with the `pNNN_` prefix. You create your own *Personal Access Token (PAT)* and run `make workshop-configure`, which detects your project number and fills in the Unleash URLs and tokens for you (Step 3).
+**Notes:**
+- Your flags, segments, impact metrics, and context fields are scoped to **your** project named `project-NNN`.
+- They are named with the `pNNN_` prefix (e.g. `p001_internal-users`).
+- You create your own *Personal Access Token (PAT)* and run `make workshop-configure`, which detects your project number and fills in the Unleash URLs and tokens for you (_Step 3_).
