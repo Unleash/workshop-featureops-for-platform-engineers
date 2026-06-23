@@ -9,6 +9,7 @@
     "unregister": "tsx unregister-webhook.ts"
   },
   "devDependencies": {
+    "@types/node": "^22",
     "tsx": "^4.19.2"
   }
 }

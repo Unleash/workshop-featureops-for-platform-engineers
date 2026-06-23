@@ -1,15 +1,10 @@
 # Expected cleanup PR — reviewer checklist
 
-When the promo-code flag is completed (kept, fully rolled out) and Copilot acts on the issue, the
-PR it opens should touch the files below and no others. Use this as a review aid — if the diff
-strays from this surface, push back on it.
+When the promo-code flag is completed (kept, fully rolled out) and Copilot acts on the issue, the PR it opens should touch the files below and no others. Use this as a review aid — if the diff strays from this surface, push back on it.
 
-The flag is `pNNN_rl_checkout-page_payment-section_promo-code` (a `release` flag, tagged
-`BackEnd+FrontEnd`). The goal: **delete the flag check, keep the enabled path** (promo codes always
-accepted).
+The flag is `pNNN_rl_checkout-page_payment-section_promo-code` (a `release` flag, tagged `BackEnd+FrontEnd`). The goal: **delete the flag check, keep the enabled path** (promo codes always accepted).
 
-> ⚠️ Merging this PR removes the repository's flagship promo-code demo. Review and close it, or run
-> the whole flow on a throwaway branch. This example commits the _wiring_, never the removal.
+> ⚠️ Merging this PR removes the repository's flagship promo-code demo. Review and close it, or run the whole flow on a throwaway branch. This example commits the _wiring_, never the removal.
 
 ## Provisioner (infrastructure)
 

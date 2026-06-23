@@ -1,4 +1,4 @@
-<!-- Append this block to `.github/copilot-instructions.md` when you promote this example. It teaches the Copilot coding agent how to act on a `unleash-flag-completed` issue. The rest of the repo's flag rules already live in `AGENTS.md` — this only adds the cleanup (retirement) side. -->
+<!-- Append this block to `.github/copilot-instructions.md` when you promote this example. It teaches the Copilot coding agent how to act on an ` unleash-flag-completed ` issue. The rest of the repo's flag rules already live in `AGENTS.md` — this only adds the cleanup (retirement) side. -->
 
 ## Automated flag cleanup
 

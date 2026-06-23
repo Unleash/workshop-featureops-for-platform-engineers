@@ -3,12 +3,13 @@
 #   - per user: a project (project-NNN) with development + production environments enabled
 #   - production guarded by change requests (1 approval), approved by the facilitator/admin
 #     (the attendee can't approve their own — segregation of duties)
-#   - per user: a group that owns that user's project (read-only everywhere else), whose members
-#     are the attendee plus the shared facilitator/admin
+#   - per user: a single-member group (just the attendee) that owns that user's project and is
+#     read-only everywhere else; the facilitator/admin approves via a direct role grant, not membership
 #
 # The per-user number (NNN) is derived from the CSV row index, so the CSV needs no extra column.
-# Each group lists its members in a fixed order (attendee, then facilitator), which keeps the
-# provider's result stable and sidesteps its "inconsistent result" bug on group user-id ordering.
+# Groups are kept single-member on purpose: the provider stores group members as an ordered list
+# but the Unleash API returns them in an undefined order, so a multi-member group can come back
+# reordered and trip the provider's "inconsistent result after apply" bug.
 
 locals {
   users = csvdecode(file("${path.module}/${var.users_csv}"))
@@ -55,7 +56,7 @@ resource "unleash_user" "users" {
   email      = each.value.email
   name       = "${each.value.name} ${each.value.surname}"
   root_role  = data.unleash_role.viewer.id
-  send_email = true
+  send_email = var.send_invite_emails
 }
 
 # One project per user.
@@ -121,13 +122,13 @@ resource "unleash_role" "change_request_approver" {
   ]
 }
 
-# One group per user: read-only globally (Viewer root role). Two members, in a fixed order:
-# the attendee, then the shared facilitator/admin. The facilitator joins every group so the
-# group's Change Request Approver role (see project_access below) lets them approve the
-# attendee's production change requests — the attendee can't approve their own. The order is
-# deterministic (attendee first), so the provider has nothing to disagree about; this is the
-# careful version of the old single-member rule that dodged the provider's "inconsistent
-# result" bug on multi-member group user-id ordering.
+# One group per user: read-only globally (Viewer root role). SINGLE member — the attendee.
+# The shared facilitator/admin is intentionally NOT a group member; they get the Change Request
+# Approver role granted directly to their user in project_access below, which is what lets them
+# approve the attendee's production change requests (the attendee can't approve their own).
+# Keeping the group single-member sidesteps the provider's "inconsistent result after apply"
+# bug: the provider stores `users` as an ordered list but the Unleash API returns group members
+# in an undefined order, so any multi-member group can come back reordered and fail the apply.
 resource "unleash_group" "team" {
   for_each = local.users_by_number
 
@@ -135,7 +136,6 @@ resource "unleash_group" "team" {
   root_role = data.unleash_role.viewer.id
   users = [
     tonumber(unleash_user.users[each.key].id),
-    tonumber(data.unleash_user.facilitator.id),
   ]
 
   # Force the group to be destroyed *before* the custom role. Otherwise destroy
@@ -145,9 +145,10 @@ resource "unleash_group" "team" {
   depends_on = [unleash_role.change_request_approver]
 }
 
-# Grant each group Owner on its own project, plus the change-request approver role. The group
-# includes the facilitator/admin, so the group can approve the production change requests the
-# attendee raises — the attendee cannot approve their OWN (segregation of duties).
+# Grant the attendee's group Owner on its own project (via the group), plus the change-request
+# approver role granted DIRECTLY to the facilitator/admin user. That direct grant — not group
+# membership — is how the facilitator approves the production change requests the attendee raises,
+# while the attendee cannot approve their OWN (segregation of duties).
 resource "unleash_project_access" "team" {
   for_each = local.users_by_number
 
@@ -161,8 +162,8 @@ resource "unleash_project_access" "team" {
     },
     {
       role   = tonumber(unleash_role.change_request_approver.id)
-      users  = []
-      groups = [tonumber(unleash_group.team[each.key].id)]
+      users  = [tonumber(data.unleash_user.facilitator.id)]
+      groups = []
     },
     # The master-kill-switch service account, so its Actions can flip this project's kill switch off
     # in dev + prod (and skip prod change requests). See service-accounts.tf.

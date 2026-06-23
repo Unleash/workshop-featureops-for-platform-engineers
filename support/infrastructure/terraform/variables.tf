@@ -16,6 +16,12 @@ variable "users_csv" {
   default     = "users.csv"
 }
 
+variable "send_invite_emails" {
+  description = "Whether to send Unleash welcome/invite emails when creating users. Set to false (e.g. when load-testing provisioning of many users) to suppress invite emails."
+  type        = bool
+  default     = false
+}
+
 variable "facilitator_email" {
   description = "Email of the workshop facilitator/admin added to every team group to approve attendees' production change requests (attendees cannot approve their own — segregation of duties). Override via TF_VAR_facilitator_email."
   type        = string

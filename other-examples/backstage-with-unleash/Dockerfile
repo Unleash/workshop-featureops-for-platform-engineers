@@ -4,9 +4,16 @@
 #
 # Node 22: satisfies Backstage's required `22 || 24`, matches the monorepo's pinned Node 22,
 # and is within the Unleash plugin's supported `20 || 22`.
+#
+# Pinned to 22.22 (not the floating `22` tag, which is now 22.23+): Node 22.23 / 24.17 backport
+# the CVE-2026-48931 keep-alive socket fix, which makes node-fetch@2 throw
+# ERR_STREAM_PREMATURE_CLOSE on the backend's internal HTTP self-calls (catalog-client, search
+# collators, the Unleash plugin). 22.22 is the last release before that change. Remove the pin
+# once Backstage moves these self-calls off node-fetch / supplies keep-alive fetch options.
+# See https://github.com/backstage/backstage/issues/34651 and https://github.com/nodejs/node/issues/63989
 
 # ---- Stage 1: build the backend bundle -------------------------------------------------------
-FROM node:22-bookworm AS build
+FROM node:22.22-bookworm AS build
 ENV PYTHON=/usr/bin/python3
 WORKDIR /app
 
@@ -24,7 +31,7 @@ RUN yarn tsc
 RUN yarn build:backend
 
 # ---- Stage 2: lean runtime -------------------------------------------------------------------
-FROM node:22-bookworm-slim AS runtime
+FROM node:22.22-bookworm-slim AS runtime
 ENV PYTHON=/usr/bin/python3
 # Switches many Node deps to production mode; disable node snapshot for the scaffolder.
 ENV NODE_ENV=production

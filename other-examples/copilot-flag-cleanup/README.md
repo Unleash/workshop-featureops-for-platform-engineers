@@ -6,7 +6,7 @@ The rest of this repository teaches the _creation_ side (evaluate → detect →
 
 > **Nothing here runs until you enable it.** The workflow lives under `github/workflows/` (no leading dot), so GitHub Actions ignores it; no webhook is registered; the live promo-code code is untouched. See [How to enable](#how-to-enable-promote-to-main).
 
-Based on Unleash's[Automating Feature Flag Cleanup with GitHub Copilot](https://www.getunleash.io/blog/automating-feature-flag-cleanup-github-copilot) and the [GitHub Copilot integration docs](https://docs.getunleash.io/integrate/github-copilot).
+Based on Unleash's [Automating Feature Flag Cleanup with GitHub Copilot](https://www.getunleash.io/blog/automating-feature-flag-cleanup-github-copilot) and the [GitHub Copilot integration docs](https://docs.getunleash.io/integrate/github-copilot).
 
 ## What this is — the pipeline
 
@@ -61,7 +61,7 @@ GitHub exposes MCP secrets to the Copilot environment only under the `COPILOT_MC
 3. **MCP** — add `copilot/mcp.json` to the repo's Copilot cloud-agent config (repository **Settings ▸ Copilot ▸ Coding agent**, or `.github/copilot/mcp.json`).
 4. **Webhook** — from `unleash/`:
    ```sh
-   cp ../.env.example .env   # then fill it in
+   cp .env.example .env      # then fill it in
    npm install               # installs tsx
    npm run register          # creates the webhook   (npm run unregister removes it)
    ```
