@@ -14,7 +14,8 @@
  * Run after `terraform apply`. Flag mutations on the change-request-guarded `production`
  * environment are wrapped so the guard is lifted, applied, then restored — per project.
  */
-import { PROJECTS } from './config';
+import { PROJECTS, FORCE_PROVISION } from './config';
+import { projectExists, projectProvisioned } from './setup/projects';
 import { createContextFields } from './setup/context-fields';
 import { withChangeRequestsDisabled } from './setup/change-requests';
 import { createFlags } from './flags/flags';
@@ -39,13 +40,26 @@ const run = async (): Promise<void> => {
     const signal = await createMasterKillSwitchSignal();
     const actorId = signal ? await resolveActorId() : null;
     for (const project of PROJECTS) {
+      if (!(await projectExists(project))) {
+        console.warn(`[provision] ${project} not found — skipping project-dependent steps.`);
+        continue;
+      }
+      // Skip the ~30 idempotent per-project calls when the project is already provisioned (one probe).
+      // applyTags is the LAST step below, so its Layer tag is a reliable "fully done" sentinel.
+      // UNLEASH_FORCE_PROVISION re-reconciles everything (e.g. after editing FLAGS).
+      if (!FORCE_PROVISION && (await projectProvisioned(project))) {
+        console.log(
+          `[provision] ${project} already provisioned — skipping (set UNLEASH_FORCE_PROVISION=1 to re-run).`,
+        );
+        continue;
+      }
       await createContextFields(project);
       await withChangeRequestsDisabled(project, () => createFlags(project));
       await createSegments(project);
-      await applyTags(project);
       if (signal && actorId !== null) {
         await createMasterKillSwitchAction(project, signal.endpointId, actorId);
       }
+      await applyTags(project);
     }
     console.log('[provision] Done.');
   } catch (error: unknown) {

@@ -15,4 +15,10 @@ terraform {
 provider "unleash" {
   base_url      = var.unleash_base_url
   authorization = var.unleash_token
+
+  # Cap in-flight admin API calls. The provider has NO retry/backoff for HTTP 429, so a single
+  # rate-limit response aborts the whole apply. Serializing requests (default 1) keeps large runs
+  # (e.g. provisioning 400 users) under the hosted instance's request-rate window. Raise toward the
+  # provider default of 2 to trade safety for speed.
+  max_concurrent_requests = var.unleash_max_concurrent_requests
 }

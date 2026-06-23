@@ -85,6 +85,15 @@ resource "unleash_project" "team" {
     { title = "Checkout Page (DEV)", url_template = "http://localhost:8080" },
     { title = "Checkout Page (PROD)", url_template = "http://localhost:8090" },
   ]
+
+  # Destroy projects (and the project_access grants they carry — the facilitator's
+  # change-request-approver grant and the master-kill-switch SA's grant) BEFORE the shared custom
+  # roles. The facilitator is an unmanaged data-source user, so its grant is only cleared when the
+  # project is torn down; without this edge the role DELETE races that teardown → 400 RoleInUseError.
+  depends_on = [
+    unleash_role.change_request_approver,
+    unleash_role.master_kill_switch_toggler,
+  ]
 }
 
 # Enable both environments on every project (a fresh project has none enabled, which

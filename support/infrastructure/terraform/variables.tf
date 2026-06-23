@@ -16,6 +16,12 @@ variable "users_csv" {
   default     = "users.csv"
 }
 
+variable "unleash_max_concurrent_requests" {
+  description = "Max concurrent admin API requests the Unleash provider may have in flight. The provider has no 429 retry, so 1 (fully serial) keeps large runs under the hosted rate-limit window; the provider's own default is 2 (faster, burstier). Also settable via UNLEASH_MAX_CONCURRENT_REQUESTS."
+  type        = number
+  default     = 2
+}
+
 variable "send_invite_emails" {
   description = "Whether to send Unleash welcome/invite emails when creating users. Set to false (e.g. when load-testing provisioning of many users) to suppress invite emails."
   type        = bool

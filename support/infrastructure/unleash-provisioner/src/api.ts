@@ -9,15 +9,24 @@ const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout
 
 // Statuses worth retrying: rate limiting + transient gateway/availability errors.
 const RETRYABLE = new Set([429, 502, 503, 504]);
-const MAX_ATTEMPTS = 5;
+// A 400-project run fires thousands of sequential calls; sustained throttling needs a wider budget
+// than a single project did. 8 attempts spans well over a minute of backoff before giving up.
+const MAX_ATTEMPTS = 8;
+const MAX_BACKOFF_MS = 30_000; // cap exponential growth so a late attempt doesn't stall for minutes
 
-/** Backoff for attempt N (1-based), honoring a numeric Retry-After (seconds) when present. */
+/**
+ * Backoff for attempt N (1-based). Honors a numeric Retry-After (seconds) when present; otherwise
+ * exponential (0.5s, 1s, 2s, …) capped at MAX_BACKOFF_MS, with ±25% jitter so concurrent runs
+ * against the same instance don't resynchronize their retries into a fresh burst.
+ */
 const backoffMs = (attempt: number, retryAfter: string | null): number => {
   const seconds = Number(retryAfter);
   if (retryAfter !== null && Number.isFinite(seconds) && seconds > 0) {
     return seconds * 1000;
   }
-  return 500 * 2 ** (attempt - 1); // 0.5s, 1s, 2s, 4s, …
+  const base = Math.min(500 * 2 ** (attempt - 1), MAX_BACKOFF_MS);
+  const jitter = base * 0.25 * (Math.random() * 2 - 1); // ±25%
+  return Math.round(base + jitter);
 };
 
 /**

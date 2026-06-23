@@ -41,6 +41,15 @@ export const PROJECTS = (process.env.UNLEASH_PROJECTS ?? 'project-001')
 /** Derive a project's zero-padded number ("001") from its id ("project-001") for name prefixes. */
 export const projectNumber = (project: string): string => project.replace(/^project-/, '');
 
+/**
+ * Bypass the create loop's "already provisioned" skip so every project is re-reconciled — needed
+ * after editing the flag/context/segment definitions, since otherwise provisioned projects are
+ * skipped and never pick up the change. Off by default (skip already-provisioned projects for speed).
+ */
+export const FORCE_PROVISION = ['1', 'true', 'yes'].includes(
+  trim(process.env.UNLEASH_FORCE_PROVISION ?? '').toLowerCase(),
+);
+
 /** Environments to provision flags into. */
 export const ENVIRONMENTS = splitWords(
   process.env.UNLEASH_ENVIRONMENTS ?? 'development production',

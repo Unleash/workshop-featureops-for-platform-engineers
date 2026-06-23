@@ -51,6 +51,21 @@ export TF_VAR_unleash_base_url TF_VAR_unleash_token TF_VAR_facilitator_email \
 # Attendee project number (drives the pNNN_ flag prefix); defaults to 001 before .env exists.
 PNUM := $(or $(strip $(UNLEASH_PROJECT_NUMBER)),001)
 
+# Terraform graph-walk concurrency for unleash-create / unleash-destroy, forwarded to the nested
+# terraform Makefile. Default: 10. Lower it (e.g. `make unleash-create PARALLELISM=1`) if the hosted
+# instance rate-limits large runs.
+PARALLELISM ?= 5
+
+# Whether terraform refreshes state before apply/destroy, forwarded to the nested terraform Makefile.
+# Default true; `make unleash-create REFRESH=false` skips the read-back (faster on large runs).
+REFRESH ?= true
+
+# User-creation throttle, forwarded to the nested terraform Makefile. The Admin API caps user creation
+# at 20 calls/min, so unleash-create paces unleash_user.users in -target batches with a pause between.
+# Override e.g. `make unleash-create USER_BATCH_SIZE=10 USER_BATCH_PAUSE=60` (USER_BATCH_SIZE=0 disables).
+USER_BATCH_SIZE  ?= 18
+USER_BATCH_PAUSE ?= 60
+
 .PHONY: help workshop-pre-check workshop-configure workshop-final-check setup install dev clean \
         docker-pull docker-up docker-down docker-image docker-logs \
         unleash-create unleash-destroy \
@@ -173,9 +188,11 @@ docker-logs:
 # =====================================================================
 unleash-create: ensure-env ensure-tf-env
 	@echo "→ Provisioning users / project / group and minting app tokens with Terraform…"
-	@$(TF) init -input=false >/dev/null
-	@$(TF) apply -auto-approve -input=false
+	@$(MAKE) -C support/infrastructure/terraform apply PARALLELISM=$(PARALLELISM) REFRESH=$(REFRESH) \
+	        USER_BATCH_SIZE=$(USER_BATCH_SIZE) USER_BATCH_PAUSE=$(USER_BATCH_PAUSE)
 	@echo "→ Provisioning flags, context fields, segment, Layer tags, and the master kill switch (all projects)…"
+	@# Already-provisioned projects are skipped after a one-call probe; set UNLEASH_FORCE_PROVISION=1 to
+	@# re-reconcile every project (e.g. after editing the flag/context/segment definitions).
 	@UNLEASH_PROJECTS="$$($(TF) output -raw project_ids)" \
 	 $(call pm_filter,unleash-provisioner,provision)
 
@@ -193,7 +210,7 @@ unleash-destroy: ensure-env ensure-tf-env
 	   echo "→ No projects in Terraform state — skipping provisioner cleanup."; \
 	 fi
 	@echo "→ Destroying Terraform-managed Unleash resources…"
-	@$(TF) destroy -auto-approve -input=false
+	@$(MAKE) -C support/infrastructure/terraform destroy PARALLELISM=$(PARALLELISM) REFRESH=$(REFRESH)
 
 # Master kill switch — one signal disables the SWAG-store-link kill switch in EVERY project
 # (dev + prod). Needs the master kill switch provisioned first (make unleash-create writes the

@@ -14,6 +14,7 @@
  * Idempotent: a missing resource (404) is fine, so this is safe to run standalone or twice.
  */
 import { PROJECTS } from './config';
+import { projectExists } from './setup/projects';
 import { withChangeRequestsDisabled } from './setup/change-requests';
 import { archiveFlags } from './flags/flags';
 import { deleteSegments } from './setup/segments';
@@ -31,6 +32,10 @@ const run = async (): Promise<void> => {
       `[destroy] Tearing down ${PROJECTS.length.toString()} project(s): ${PROJECTS.join(', ')}`,
     );
     for (const project of PROJECTS) {
+      if (!(await projectExists(project))) {
+        console.warn(`[destroy] ${project} not found — already gone, skipping teardown.`);
+        continue;
+      }
       await deleteMasterKillSwitchAction(project);
       await withChangeRequestsDisabled(project, () => archiveFlags(project));
       await deleteSegments(project);
