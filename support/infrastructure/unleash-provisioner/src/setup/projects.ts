@@ -33,7 +33,7 @@ interface FeatureTags {
  */
 export const projectProvisioned = async (project: string): Promise<boolean> => {
   const { status, data } = await unleashApi<FeatureTags>(
-    `/projects/${project}/features/${killSwitchFlagName(project)}/tags`,
+    `/features/${killSwitchFlagName(project)}/tags`,
   );
   return status === 200 && Array.isArray(data.tags) && data.tags.some((tag) => tag.type === 'Layer');
 };

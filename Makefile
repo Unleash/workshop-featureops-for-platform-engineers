@@ -54,7 +54,7 @@ PNUM := $(or $(strip $(UNLEASH_PROJECT_NUMBER)),001)
 # Terraform graph-walk concurrency for unleash-create / unleash-destroy, forwarded to the nested
 # terraform Makefile. Default: 10. Lower it (e.g. `make unleash-create PARALLELISM=1`) if the hosted
 # instance rate-limits large runs.
-PARALLELISM ?= 5
+PARALLELISM ?= 10
 
 # Whether terraform refreshes state before apply/destroy, forwarded to the nested terraform Makefile.
 # Default true; `make unleash-create REFRESH=false` skips the read-back (faster on large runs).
@@ -63,7 +63,7 @@ REFRESH ?= true
 # User-creation throttle, forwarded to the nested terraform Makefile. The Admin API caps user creation
 # at 20 calls/min, so unleash-create paces unleash_user.users in -target batches with a pause between.
 # Override e.g. `make unleash-create USER_BATCH_SIZE=10 USER_BATCH_PAUSE=60` (USER_BATCH_SIZE=0 disables).
-USER_BATCH_SIZE  ?= 18
+USER_BATCH_SIZE  ?= 20
 USER_BATCH_PAUSE ?= 60
 
 .PHONY: help workshop-pre-check workshop-configure workshop-final-check setup install dev clean \

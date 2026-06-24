@@ -9,7 +9,7 @@ SHELL       := bash
 # Graph-walk concurrency for apply/destroy. Default: 10. Override with `make apply PARALLELISM=1`
 # (or from the repo-root Makefile). Lower it if the hosted instance rate-limits large runs — the
 # provider has no 429 retry, so a burst aborts the apply.
-PARALLELISM ?= 5
+PARALLELISM ?= 10
 
 # Whether terraform refreshes existing state before apply/destroy. Default true (terraform's
 # default); set `make apply REFRESH=false` to skip the read-back (faster on large runs, at the cost
@@ -23,10 +23,10 @@ REFRESH ?= true
 # batches with a pause between, BEFORE the full apply (by which point the users exist → no re-create).
 # Keys are zero-padded row numbers (001, 002, …) matching main.tf's users_by_number.
 #
-# USER_BATCH_SIZE: keep < 20 for margin; set 0 to disable batching (plain full apply).
+# USER_BATCH_SIZE: keep <= 20 for margin; set 0 to disable batching (plain full apply).
 # USER_BATCH_PAUSE: seconds between batches (the rate-limit window).
 # USERS_CSV: non-blank row count minus the header = number of users to pace.
-USER_BATCH_SIZE  ?= 18
+USER_BATCH_SIZE  ?= 20
 USER_BATCH_PAUSE ?= 60
 USERS_CSV        ?= users.csv
 

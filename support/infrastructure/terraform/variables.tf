@@ -25,7 +25,7 @@ variable "unleash_max_concurrent_requests" {
 variable "send_invite_emails" {
   description = "Whether to send Unleash welcome/invite emails when creating users. Set to false (e.g. when load-testing provisioning of many users) to suppress invite emails."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "facilitator_email" {
