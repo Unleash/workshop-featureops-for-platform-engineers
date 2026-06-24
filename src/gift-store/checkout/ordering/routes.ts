@@ -76,12 +76,18 @@ export const registerOrderingRoutes = (
     } catch (err) {
       // The provider failed to open a session (the redirect leg). This is both an erroneous
       // payment and an unsuccessful checkout: fail the order and record both impact metrics.
-      const errorCode = err instanceof ProviderPaymentError ? err.errorCode : 'unknown_provider_error';
-      setOrderState(order.id, 'failed');
+      const errorCode =
+        err instanceof ProviderPaymentError ? err.errorCode : 'unknown_provider_error';
+      setOrderState(order.id, 'failed', errorCode);
       deps.impactMetrics.recordProviderRedirectError();
       deps.impactMetrics.recordCheckoutError();
-      req.log.warn({ orderId: order.id, provider: strategy.id, errorCode }, 'Payment session creation failed');
-      return reply.code(502).send({ error: 'payment_provider_unavailable', errorCode, orderId: order.id });
+      req.log.warn(
+        { orderId: order.id, provider: strategy.id, errorCode },
+        'Payment session creation failed',
+      );
+      return reply
+        .code(502)
+        .send({ error: 'payment_provider_unavailable', errorCode, orderId: order.id });
     }
 
     attachPayment(order.id, payment.paymentId);

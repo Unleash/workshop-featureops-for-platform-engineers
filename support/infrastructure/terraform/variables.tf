@@ -28,8 +28,8 @@ variable "send_invite_emails" {
   default     = true
 }
 
-variable "facilitator_email" {
-  description = "Email of the workshop facilitator/admin added to every team group to approve attendees' production change requests (attendees cannot approve their own — segregation of duties). Override via TF_VAR_facilitator_email."
+variable "facilitator_emails" {
+  description = "Semicolon-separated emails of the workshop facilitators/admins granted the Change Request Approver role on every team project to approve attendees' production change requests (attendees cannot approve their own — segregation of duties). A plain string (split on ';', matching the project_ids/UNLEASH_PROJECTS convention) so the TF_VAR_ override needs no list/quoting syntax; each email must already exist on the instance."
   type        = string
-  default     = "wojtek.gawronski@getunleash.io"
+  default     = "wojtek.gawronski@getunleash.io;alex.casalboni@getunleash.io"
 }

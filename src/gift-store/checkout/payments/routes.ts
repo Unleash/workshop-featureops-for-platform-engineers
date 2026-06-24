@@ -39,7 +39,12 @@ export const registerPaymentRoutes = (
     if (!strategy.verifyWebhook(config, req.headers)) {
       return reply.code(401).send({ error: 'invalid signature' });
     }
-    setOrderState(reference, status === 'paid' ? 'paid' : 'failed');
+    // Persist the provider's error code on a failed capture so the confirmation view can show it.
+    setOrderState(
+      reference,
+      status === 'paid' ? 'paid' : 'failed',
+      status === 'paid' ? undefined : errorCode,
+    );
     metrics.checkoutCompleted.inc({ status });
     // The provider's confirmation is the after-payment leg: a failed capture is both an
     // erroneous payment and an unsuccessful checkout.
@@ -50,7 +55,10 @@ export const registerPaymentRoutes = (
       deps.impactMetrics.recordProviderAfterPaymentError();
       deps.impactMetrics.recordCheckoutError();
     }
-    req.log.info({ reference, provider: strategy.id, status, errorCode }, 'Provider webhook processed');
+    req.log.info(
+      { reference, provider: strategy.id, status, errorCode },
+      'Provider webhook processed',
+    );
     return reply.code(204).send();
   });
 };

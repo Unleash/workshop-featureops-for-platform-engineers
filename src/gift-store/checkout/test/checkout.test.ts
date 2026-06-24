@@ -205,6 +205,8 @@ describe('checkout error paths (impact metrics)', () => {
         await app.inject({ method: 'GET', url: `/checkout/orders/${body.orderId}` })
       ).json<Order>();
       expect(order.state).toBe('failed');
+      // The redirect-leg failure code is persisted on the order too.
+      expect(order.errorCode).toBe('PAYMENT_INIT_FAILED');
 
       expect(recorder.calls).toContain('recordProviderRedirectError');
       expect(recorder.calls).toContain('recordCheckoutError');
@@ -252,6 +254,8 @@ describe('checkout error paths (impact metrics)', () => {
         await app.inject({ method: 'GET', url: `/checkout/orders/${payment.orderId}` })
       ).json<Order>();
       expect(order.state).toBe('failed');
+      // The provider's error code is persisted on the order so the confirmation view can show it.
+      expect(order.errorCode).toBe('PAYMENT_CAPTURE_FAILED');
 
       expect(recorder.calls).toContain('recordProviderAfterPaymentError');
       expect(recorder.calls).toContain('recordCheckoutError');

@@ -9,6 +9,15 @@ const STATE_COPY: Record<Order['state'], { title: string; tone: string }> = {
   pending: { title: 'Payment pending…', tone: 'text-slate-500' },
 };
 
+// Friendly copy for the unified provider error codes a failed order can carry. Unknown codes
+// fall back to the raw code so a new provider error is never silently swallowed.
+const ERROR_MESSAGES: Record<string, string> = {
+  PAYMENT_INIT_FAILED: 'The payment provider could not start the payment. Please try again.',
+  PAYMENT_CAPTURE_FAILED: 'The payment provider could not complete the payment. Please try again.',
+};
+
+const errorMessage = (code: string): string => ERROR_MESSAGES[code] ?? `Payment error: ${code}`;
+
 export const Confirmation = ({ orderId }: { orderId: string }) => {
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +47,15 @@ export const Confirmation = ({ orderId }: { orderId: string }) => {
               {STATE_COPY[order.state].title}
             </h2>
             <p className="mt-2 text-slate-500">Order {order.id}</p>
+            {order.state === 'failed' && order.errorCode !== undefined && (
+              <div
+                role="alert"
+                className="mx-auto mt-4 max-w-md rounded-xl border border-red-200 bg-red-50 p-4 text-left"
+              >
+                <p className="font-semibold text-red-700">{errorMessage(order.errorCode)}</p>
+                <p className="mt-1 font-mono text-xs text-red-500">{order.errorCode}</p>
+              </div>
+            )}
             {(() => {
               // The development environment is a SANDBOX — it never moves real money, so the
               // provider charges $0.00 there. We key the sandbox treatment on the environment

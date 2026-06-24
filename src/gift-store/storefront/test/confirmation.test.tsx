@@ -64,3 +64,39 @@ describe('Confirmation — environment-aware charge', () => {
     expect(screen.getByText(/sandbox/i)).toBeInTheDocument();
   });
 });
+
+describe('Confirmation — provider errors', () => {
+  beforeEach(() => {
+    vi.mocked(fetchOrder).mockReset();
+  });
+
+  it('given a failed order with a provider error code, when it loads, then a friendly error and the raw code are shown', async () => {
+    vi.mocked(fetchOrder).mockResolvedValue(
+      order({ state: 'failed', errorCode: 'PAYMENT_CAPTURE_FAILED' }),
+    );
+
+    render(<Confirmation orderId="order-1" />);
+
+    expect(await screen.findByText(/could not complete the payment/i)).toBeInTheDocument();
+    expect(screen.getByText('PAYMENT_CAPTURE_FAILED')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+  });
+
+  it('given an unknown error code, when it loads, then it falls back to showing the raw code', async () => {
+    vi.mocked(fetchOrder).mockResolvedValue(order({ state: 'failed', errorCode: 'SOMETHING_NEW' }));
+
+    render(<Confirmation orderId="order-1" />);
+
+    expect(await screen.findByText(/Payment error: SOMETHING_NEW/i)).toBeInTheDocument();
+  });
+
+  it('given a failed order with no error code (a clean decline), when it loads, then no error block is shown', async () => {
+    vi.mocked(fetchOrder).mockResolvedValue(order({ state: 'failed' }));
+
+    render(<Confirmation orderId="order-1" />);
+
+    // The title still renders, but there is no provider-error alert.
+    expect(await screen.findByText('Payment cancelled')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+});

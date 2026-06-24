@@ -97,11 +97,21 @@ export const buildApp = (config: Config, deps: DashedDeps): FastifyInstance => {
       if (!payment) {
         return reply.code(404).send({ error: 'unknown payment' });
       }
-      let status: PaymentStatus = req.query.decision === 'decline' ? 'failed' : 'paid';
+      const declined = req.query.decision === 'decline';
+      let status: PaymentStatus = declined ? 'failed' : 'paid';
       let errorCode: string | undefined;
-      // Mode A: in production only, ~1/3 of would-be-successful captures fail. Sandbox is
-      // unaffected, and a genuine decline keeps its own failed path (no injected code).
-      if (status === 'paid' && payment.environment === 'production' && deps.shouldFailConfirm?.()) {
+      if (declined) {
+        // DELIBERATE error path, unique to Dashed (PayBro keeps its clean, code-less decline):
+        // a cancel is reported as a capture failure — unconditionally, in every environment and
+        // with no probability gate — so it reliably spikes the merchant's after-payment / checkout
+        // error metrics. This is the hidden fallback for producing a dependable Dashed error signal.
+        errorCode = PAYMENT_ERROR_CODES.PAYMENT_CAPTURE_FAILED;
+        req.log.warn(
+          { paymentId: payment.paymentId },
+          'Payment cancelled by shopper (reported as capture failure)',
+        );
+      } else if (payment.environment === 'production' && deps.shouldFailConfirm?.()) {
+        // Mode A: in production only, ~1/3 of would-be-successful captures fail. Sandbox is unaffected.
         status = 'failed';
         errorCode = PAYMENT_ERROR_CODES.PAYMENT_CAPTURE_FAILED;
         req.log.warn({ paymentId: payment.paymentId }, 'Payment capture failed');

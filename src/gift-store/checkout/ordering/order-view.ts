@@ -10,4 +10,6 @@ export const toPublicOrder = (order: StoredOrder): Order => ({
   environment: order.environment,
   // Falls back to the requested total if a charge was somehow never recorded.
   amountCharged: order.amountCharged ?? order.breakdown.total,
+  // Surfaced on a failed order so the confirmation view can show why the payment failed.
+  errorCode: order.errorCode,
 });

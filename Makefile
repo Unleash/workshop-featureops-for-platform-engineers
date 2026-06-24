@@ -45,7 +45,7 @@ endif
 # checks and recipes — and the import/destroy scripts inherit them. The PRODUCTION app
 # tokens are exported too so `pnpm dev` can launch the side-by-side production instance.
 -include .env
-export TF_VAR_unleash_base_url TF_VAR_unleash_token TF_VAR_facilitator_email \
+export TF_VAR_unleash_base_url TF_VAR_unleash_token TF_VAR_facilitator_emails \
        VITE_UNLEASH_CLIENT_KEY_PRODUCTION UNLEASH_API_TOKEN_PRODUCTION
 
 # Attendee project number (drives the pNNN_ flag prefix); defaults to 001 before .env exists.

@@ -31,6 +31,12 @@ export interface Order {
    * the requested total struck through beside the real charge.
    */
   readonly amountCharged: Money;
+  /**
+   * Unified provider error code when the payment failed (`state === 'failed'`) and the
+   * provider reported one — e.g. `PAYMENT_CAPTURE_FAILED`. Absent for a clean decline that
+   * carries no code (PayBro) or for a successful order. The confirmation view surfaces it.
+   */
+  readonly errorCode?: string;
 }
 
 /** A reference to the (possibly guest) shopper placing the order. */

@@ -20,6 +20,8 @@ export interface StoredOrder {
   /** What the provider actually charged; set once the payment session is created. */
   amountCharged?: Money;
   paymentId?: string;
+  /** Unified provider error code recorded when the order fails (e.g. PAYMENT_CAPTURE_FAILED). */
+  errorCode?: string;
 }
 
 const orders = new Map<string, StoredOrder>();
@@ -46,9 +48,13 @@ export const setOrderCharge = (orderId: string, amountCharged: Money): void => {
   if (order) order.amountCharged = amountCharged;
 };
 
-export const setOrderState = (orderId: string, state: OrderState): void => {
+export const setOrderState = (orderId: string, state: OrderState, errorCode?: string): void => {
   const order = orders.get(orderId);
-  if (order) order.state = state;
+  if (order) {
+    order.state = state;
+    // Record the failure code when one is supplied; leave any prior value untouched otherwise.
+    if (errorCode !== undefined) order.errorCode = errorCode;
+  }
 };
 
 export const getOrder = (orderId: string): StoredOrder | undefined => orders.get(orderId);

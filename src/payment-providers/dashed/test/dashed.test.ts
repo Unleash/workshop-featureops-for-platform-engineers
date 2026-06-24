@@ -174,6 +174,38 @@ describe('Dashed injected failures', () => {
     }
   });
 
+  it('given no injected failures, when the shopper cancels, then the merchant is notified failed with the unified code (the deliberate Dashed error path)', async () => {
+    const notified: Payment[] = [];
+    // No shouldFail* deps: the cancel path must spike an error on its own, in every environment.
+    const app = buildApp(loadConfig({ NODE_ENV: 'development', LOG_LEVEL: 'silent' }), {
+      notifyMerchant: (payment) => {
+        notified.push(payment);
+        return Promise.resolve();
+      },
+    });
+    await app.ready();
+    try {
+      const session = (
+        await app.inject({
+          method: 'POST',
+          url: '/api/payments',
+          payload: newPayment('development', 'order-cancel'),
+        })
+      ).json<{ paymentId: string }>();
+
+      const confirm = await app.inject({
+        method: 'POST',
+        url: `/pay/${session.paymentId}/confirm?decision=decline`,
+      });
+      expect(confirm.statusCode).toBe(303);
+      expect(confirm.headers.location).toContain('status=failed');
+      expect(notified[0]?.status).toBe('failed');
+      expect(notified[0]?.errorCode).toBe('PAYMENT_CAPTURE_FAILED');
+    } finally {
+      await app.close();
+    }
+  });
+
   it('given capture failure is injected but the environment is sandbox, when the shopper pays, then it still succeeds', async () => {
     const notified: Payment[] = [];
     const app = buildApp(loadConfig({ NODE_ENV: 'development', LOG_LEVEL: 'silent' }), {
