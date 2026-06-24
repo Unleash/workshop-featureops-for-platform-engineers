@@ -26,7 +26,7 @@ interface ActionSet {
   name: string;
 }
 
-/** Action set name for a project, e.g. p001_master-kill-switch_disable-swag-store-link. */
+/** Action set name for a project, e.g. pNNN_master-kill-switch_disable-swag-store-link. */
 const actionName = (project: string): string =>
   `p${projectNumber(project)}_master-kill-switch_disable-swag-store-link`;
 

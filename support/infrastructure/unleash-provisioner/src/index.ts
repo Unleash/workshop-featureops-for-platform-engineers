@@ -1,6 +1,6 @@
 /**
  * CREATE entrypoint. Provisions everything the official Unleash Terraform provider can't, for
- * EVERY attendee project (project-001, project-002, …) listed in UNLEASH_PROJECTS:
+ * EVERY attendee project (project-NNN, project-NNN+1, …) listed in UNLEASH_PROJECTS:
  *   1. project-scoped context fields (pNNN_region, pNNN_email)
  *   2. the workshop's feature flags (+ strategies, variants, per-env enabled state)
  *   3. the pNNN_internal-users segment (references pNNN_email)

@@ -1,7 +1,7 @@
 import { unleashApi } from '../api';
 import { projectNumber } from '../config';
 
-/** Segment name for a project, e.g. project-001 → p001_internal-users. */
+/** Segment name for a project, e.g. project-NNN → pNNN_internal-users. */
 const segmentName = (project: string): string => `p${projectNumber(project)}_internal-users`;
 
 interface SegmentSummary {

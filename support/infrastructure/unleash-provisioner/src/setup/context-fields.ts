@@ -7,7 +7,7 @@ interface LegalValue {
 }
 
 interface ContextFieldDef {
-  /** Bare name; the project number is prefixed at provision time (e.g. region → p001_region). */
+  /** Bare name; the project number is prefixed at provision time (e.g. region → pNNN_region). */
   suffix: string;
   description: string;
   stickiness: boolean;
@@ -17,7 +17,7 @@ interface ContextFieldDef {
 // PROJECT-SCOPED context fields. The official Terraform provider's unleash_context_field has no
 // `project` argument, so these live here (the Admin API's createContextFieldSchema accepts a
 // `project`). Context-field NAMES are globally unique across the instance, so each project's
-// fields are prefixed with its number (p001_region, p002_region, …) to stay isolated per attendee.
+// fields are prefixed with its number (pNNN_region, pNNN+1_region, …) to stay isolated per attendee.
 const CONTEXT_FIELDS: ContextFieldDef[] = [
   {
     suffix: 'region',

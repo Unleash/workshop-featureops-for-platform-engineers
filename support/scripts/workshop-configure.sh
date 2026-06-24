@@ -6,7 +6,7 @@
 # instance id) and paste a Personal Access Token (PAT) you create in the Unleash UI; the script
 # then calls the Unleash admin API with that PAT to discover everything else:
 #   • the Unleash / Frontend / MCP URLs (derived from region + instance)
-#   • which project you own — ownership is granted to your team group (e.g. "Team 001"), so it
+#   • which project you own — ownership is granted to your team group (e.g. "Team NNN"), so it
 #     finds the project whose owning group lists you as a member — and stars it for you
 #   • the four SDK tokens (backend + frontend, development + production) for that project
 # and writes them all back into .env in place.
@@ -107,7 +107,7 @@ set_env UNLEASH_MCP_PAT_TOKEN  "$PAT"
 ok "Wrote Unleash, Frontend, and MCP URLs + your PAT."
 
 # --- 4. find the project you own --------------------------------------------
-# Project ownership is granted to your *team group* (e.g. "Team 001"), not to your user directly
+# Project ownership is granted to your *team group* (e.g. "Team NNN"), not to your user directly
 # (see support/infrastructure/terraform/main.tf). Rather than list *every* project on the instance
 # (there can be 400+) and probe /access on each, ask the personalized dashboard: GET
 # /api/admin/personal-dashboard returns only the projects *you* participate in (any role). We then

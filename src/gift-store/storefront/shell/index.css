@@ -16,7 +16,7 @@ body {
 }
 
 /* The Unleash Toolbar hardcodes the panel to 400px, which looks cramped and truncates the
-   workshop's long flag names (e.g. p001_kx_checkout-page_headline_link-to-real-unleash-store).
+   workshop's long flag names (e.g. pNNN_kx_checkout-page_headline_link-to-real-unleash-store).
    Let it size to its content instead, capped to the viewport so it never overflows. */
 .unleash-toolbar-container .unleash-toolbar {
   width: max-content !important;

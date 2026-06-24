@@ -80,7 +80,11 @@ wait_for_200() {
   return 1
 }
 
-PROJECT_NUMBER="$(from_env UNLEASH_PROJECT_NUMBER)"; PROJECT_NUMBER="${PROJECT_NUMBER:-001}"
+PROJECT_NUMBER="$(from_env UNLEASH_PROJECT_NUMBER)"
+if [ -z "$PROJECT_NUMBER" ]; then
+  bad "UNLEASH_PROJECT_NUMBER is not set — run 'make workshop-configure' (it infers your project from your Unleash permissions)."
+  exit 1
+fi
 PROJECT_ID="project-${PROJECT_NUMBER}"
 PREFIX="p${PROJECT_NUMBER}_"
 

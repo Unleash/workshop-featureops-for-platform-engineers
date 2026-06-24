@@ -67,7 +67,7 @@ const FLAGS: FlagDef[] = [
   },
 ];
 
-/** Full flag name for a project, e.g. (project-001, rl_…promo-code) → p001_rl_…promo-code. */
+/** Full flag name for a project, e.g. (project-NNN, rl_…promo-code) → pNNN_rl_…promo-code. */
 const flagName = (project: string, suffix: string): string =>
   `p${projectNumber(project)}_${suffix}`;
 
@@ -80,7 +80,7 @@ if (!killSwitchFlag) {
   throw new Error('No kill-switch flag defined in FLAGS — the master kill switch needs one.');
 }
 
-/** Full name of a project's kill-switch flag, e.g. p001_kx_checkout-page_headline_link-to-real-unleash-store. */
+/** Full name of a project's kill-switch flag, e.g. pNNN_kx_checkout-page_headline_link-to-real-unleash-store. */
 export const killSwitchFlagName = (project: string): string =>
   flagName(project, killSwitchFlag.suffix);
 

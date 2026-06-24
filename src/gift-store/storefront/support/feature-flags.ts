@@ -17,10 +17,21 @@ import { DEFAULT_REGION, getInitialEmail, getInitialUserId, SESSION_ID } from '.
 
 // Each attendee runs against their OWN project (project-NNN), and both the flag names and the
 // context-field names carry that project's number as a `pNNN_` prefix. The number is baked at
-// build time via VITE_UNLEASH_PROJECT_NUMBER (written to .env by `make unleash-create`, default 001).
-const PROJECT_NUMBER = (import.meta.env.VITE_UNLEASH_PROJECT_NUMBER as string | undefined) ?? '001';
+// build time via VITE_UNLEASH_PROJECT_NUMBER. There is no default: an absent value means "not
+// configured yet", so the build fails loudly rather than baking in some other project's number.
+const requireProjectNumber = (): string => {
+  const value = (import.meta.env.VITE_UNLEASH_PROJECT_NUMBER as string | undefined)?.trim();
+  if (!value) {
+    throw new Error(
+      'VITE_UNLEASH_PROJECT_NUMBER is required. Run `make workshop-configure` (it infers your ' +
+        'project from your Unleash permissions), or set it manually to your assigned number.',
+    );
+  }
+  return value;
+};
+const PROJECT_NUMBER = requireProjectNumber();
 const flag = (suffix: string): string => `p${PROJECT_NUMBER}_${suffix}`;
-/** Context property key for this attendee's project-scoped context field (e.g. p001_region). */
+/** Context property key for this attendee's project-scoped context field (e.g. pNNN_region). */
 const contextKey = (name: string): string => `p${PROJECT_NUMBER}_${name}`;
 
 export const FLAGS = {

@@ -48,9 +48,6 @@ endif
 export TF_VAR_unleash_base_url TF_VAR_unleash_token TF_VAR_facilitator_emails \
        VITE_UNLEASH_CLIENT_KEY_PRODUCTION UNLEASH_API_TOKEN_PRODUCTION
 
-# Attendee project number (drives the pNNN_ flag prefix); defaults to 001 before .env exists.
-PNUM := $(or $(strip $(UNLEASH_PROJECT_NUMBER)),001)
-
 # Terraform graph-walk concurrency for unleash-create / unleash-destroy, forwarded to the nested
 # terraform Makefile. Default: 10. Lower it (e.g. `make unleash-create PARALLELISM=1`) if the hosted
 # instance rate-limits large runs.

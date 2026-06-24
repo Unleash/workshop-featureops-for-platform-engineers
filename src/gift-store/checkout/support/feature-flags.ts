@@ -11,12 +11,23 @@ import type { Config } from './config';
 
 // This tier evaluates flags for ONE attendee project (project-NNN). Both the flag names and the
 // project-scoped context-field names carry that number as a `pNNN_` prefix, supplied via
-// UNLEASH_PROJECT_NUMBER (written to .env by `make unleash-create`, default 001).
-export const PROJECT_NUMBER = process.env.UNLEASH_PROJECT_NUMBER ?? '001';
+// UNLEASH_PROJECT_NUMBER. There is no default: an absent value means "not configured yet", so we
+// fail loudly rather than silently evaluating some other project's flags.
+const requireProjectNumber = (): string => {
+  const value = process.env.UNLEASH_PROJECT_NUMBER?.trim();
+  if (!value) {
+    throw new Error(
+      'UNLEASH_PROJECT_NUMBER is required. Run `make workshop-configure` (it infers your ' +
+        'project from your Unleash permissions), or set it manually to your assigned number.',
+    );
+  }
+  return value;
+};
+export const PROJECT_NUMBER = requireProjectNumber();
 const flag = (suffix: string): string => `p${PROJECT_NUMBER}_${suffix}`;
-/** Context property key for this project's context fields (e.g. p001_region, p001_email). */
+/** Context property key for this project's context fields (e.g. pNNN_region, pNNN_email). */
 export const contextKey = (name: string): string => `p${PROJECT_NUMBER}_${name}`;
-/** Prometheus metric-name prefix for this project, e.g. "p001_" (keeps metrics project-scoped). */
+/** Prometheus metric-name prefix for this project, e.g. "pNNN_" (keeps metrics project-scoped). */
 export const metricPrefix = `p${PROJECT_NUMBER}_`;
 
 export const FLAGS = {

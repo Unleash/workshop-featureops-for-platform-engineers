@@ -78,7 +78,7 @@ resource "unleash_project" "team" {
   feature_naming = {
     pattern     = "p\\d{3}_(rl|ex|op|kx|pm)_(v_)?[a-z][a-z0-9-]*_[a-z][a-z0-9-]*_[a-z][a-z0-9-]*"
     example     = "p001_kx_checkout-page_headline_link-to-real-unleash-store"
-    description = "p<NNN>_<rl|ex|op|kx|pm>_[v_]<domain>_<component>_<slug> — e.g. p001_kx_checkout-page_headline_link-to-real-unleash-store"
+    description = "p<NNN>_<rl|ex|op|kx|pm>_[v_]<domain>_<component>_<slug>"
   }
 
   # Fixed reference links surfaced on the project. Static URLs (no {{project}}/{{feature}}

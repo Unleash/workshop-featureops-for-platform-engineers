@@ -5,7 +5,7 @@
  * Deliberately mirrors the conventions of the (now retired) flag shell scripts so the
  * provisioning story stays uniform: admin base URL + admin token, change-request-guarded
  * production. The workshop creates one project per attendee, so this provisions a LIST of
- * projects (project-001, project-002, …) — every flag/context-field/segment name is prefixed
+ * projects (project-NNN, project-NNN+1, …) — every flag/context-field/segment name is prefixed
  * with that project's number.
  */
 
@@ -15,7 +15,7 @@ const trim = (value: string): string => value.replace(/\r/g, '').trim();
 const requireEnv = (name: string): string => {
   const value = trim(process.env[name] ?? '');
   if (value === '') {
-    throw new Error(`Set ${name} — the provisioner needs the admin Unleash base URL and token.`);
+    throw new Error(`Set ${name} — the provisioner requires it (no default).`);
   }
   return value;
 };
@@ -33,12 +33,12 @@ export const BASE_URL = normalizeBaseUrl(requireEnv('TF_VAR_unleash_base_url'));
 export const TOKEN = requireEnv('TF_VAR_unleash_token');
 
 /** Every project to provision, from the `;`-separated Terraform output `project_ids`. */
-export const PROJECTS = (process.env.UNLEASH_PROJECTS ?? 'project-001')
+export const PROJECTS = requireEnv('UNLEASH_PROJECTS')
   .split(';')
   .map(trim)
   .filter((id) => id !== '');
 
-/** Derive a project's zero-padded number ("001") from its id ("project-001") for name prefixes. */
+/** Derive a project's zero-padded number ("NNN") from its id ("project-NNN") for name prefixes. */
 export const projectNumber = (project: string): string => project.replace(/^project-/, '');
 
 /**

@@ -4,12 +4,11 @@
 
 ## Executive summary (read this first)
 
-1. **Flag-gate risky changes.** Before changing **payments**, auth, data migrations, or external integrations, wrap the change behind an Unleash feature flag. Use the MCP server to evaluate and create the flag — don't ship a risky path unguarded.
-2. **Follow the flag naming convention.** Every flag, segment, and context field is prefixed with the attendee's project number and matches `p<NNN>_<rl|ex|op|kx|pm>_[v_]<domain>_<component>_<slug>`.
+1. **Always pass the project explicitly.** The remote MCP server has no default project — every flag operation must name the project id (`project-NNN`). Never assume `default` or `001`. If you cannot determine that - ask user to provide the number. Do not cheat by looking into `.env` or environment variables!
+2. **Flag-gate risky changes.** Before changing **payments**, auth, data migrations, or external integrations, wrap the change behind an Unleash feature flag. Use the MCP server to evaluate and create the flag — don't ship a risky path unguarded.
+3. **Follow the flag naming convention.** Every flag, segment, and context field is prefixed with the attendee's project number and matches `p<NNN>_<rl|ex|op|kx|pm>_[v_]<domain>_<component>_<slug>`.
 You can follow that convention when scanning the codebase when looking for flags, but keep in mind that `p<NNN>_` prefix may be added dynamically in the code.
-3. **Always pass the project explicitly.** The remote MCP server has no default project — every flag operation must name the project id (`project-NNN`). Never assume `default`.
-4. You **have to** ignore all the files that inside `docs/`, `support/` and `other-examples/` directories. Do not base your decisions, planning, implementation, based on the content available in those places!   
-5. To detect the access to projects or specific project number you have access to, you can first find a specific flag in the code by the naming convention - and then use `get_flag_state` on it. Do not cheat by looking into `.env` or environment variables!
+4. You **have to** ignore all the files that inside `docs/`, `support/` and `other-examples/` directories. Do not base your decisions, planning, implementation, based on the content available in those places!
 
 The rest of this file is the detail behind those three rules.
 
@@ -63,10 +62,10 @@ Enforced by the project-level naming convention:
 p<NNN>_<rl|ex|op|kx|pm>_[v_]<domain>_<component>_<slug>
 ```
 
-- `<NNN>` — the attendee's zero-padded project number (e.g. `001`). Always present.
+- `<NNN>` — the attendee's zero-padded project number (e.g. `NNN`). Always present.
 - type — `rl` release · `ex` experiment · `op` operational · `kx` kill-switch · `pm` permission.
 - `v_` — optional marker, present only when the flag carries variants (orthogonal to type).
-- Example: `p001_kx_checkout-page_headline_link-to-real-unleash-store`.
+- Example: `pNNN_kx_checkout-page_headline_link-to-real-unleash-store`.
 
 The same `pNNN_` prefix applies to segments and context fields.
 

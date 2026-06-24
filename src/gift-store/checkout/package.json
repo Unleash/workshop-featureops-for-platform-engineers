@@ -8,7 +8,7 @@
     "dev": "NODE_OPTIONS=--disable-warning=DEP0205 tsx watch --env-file=../../../.env index.ts",
     "build": "tsup",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run",
+    "test": "UNLEASH_PROJECT_NUMBER=000 vitest run",
     "start": "node dist/index.js"
   },
   "dependencies": {
