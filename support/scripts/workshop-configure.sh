@@ -108,39 +108,34 @@ ok "Wrote Unleash, Frontend, and MCP URLs + your PAT."
 
 # --- 4. find the project you own --------------------------------------------
 # Project ownership is granted to your *team group* (e.g. "Team 001"), not to your user directly
-# (see support/infrastructure/terraform/main.tf). The attendee PAT can't list groups
-# (GET /api/admin/groups needs the ADMIN permission), but each project's /access response already
-# embeds the full group membership and role set — so detect ownership straight from there: find the
-# project whose .groups[] contains a group that (a) lists you as a member and (b) holds the Owner role.
-ME="$(auth_get "${BASE}/api/admin/user")"
-MY_ID="$(printf '%s' "$ME" | jq -r '.user.id // .id // empty')"
-[ -n "$MY_ID" ] || die "Could not determine your user from ${BASE}/api/admin/user."
+# (see support/infrastructure/terraform/main.tf). Rather than list *every* project on the instance
+# (there can be 400+) and probe /access on each, ask the personalized dashboard: GET
+# /api/admin/personal-dashboard returns only the projects *you* participate in (any role). We then
+# confirm the Owner role per candidate via GET /api/admin/personal-dashboard/{projectId}, whose
+# .roles[] are *your* roles in that project — so no instance-wide scan, and no user-id lookup.
+DASHBOARD="$(auth_get "${BASE}/api/admin/personal-dashboard")"
+PROJECT_COUNT="$(printf '%s' "$DASHBOARD" | jq '(.projects // []) | length' 2>/dev/null || echo 0)"
+{ [ "$PROJECT_COUNT" -gt 0 ]; } 2>/dev/null \
+  || die "Your personal dashboard lists no projects — check the PAT belongs to your workshop account."
 
-PROJECTS_JSON="$(auth_get "${BASE}/api/admin/projects")"
 PROJECT_ID=""
 while IFS= read -r pid; do
   [ -n "$pid" ] || continue
-  access="$(auth_get "${BASE}/api/admin/projects/${pid}/access")"
-  if printf '%s' "$access" | jq -e --argjson uid "$MY_ID" '
-        ([.roles[]? | select(.name | ascii_downcase == "owner") | .id]) as $owner
-        # A group you are a member of holds the Owner role on this project (.roleId or .roles[] ids)...
-        | ( any(.groups[]?;
-              any(.users[]?; (.user.id // .id) == $uid)
-              and ( ((.roleId // null) as $r | ($r != null and ($owner | index($r)) != null))
-                    or any(.roles[]?; . as $r | ($owner | index($r)) != null) ))
-        # ...or (fallback) you are a direct Owner user on the project.
-            or any(.users[]?;
-              .id == $uid
-              and ( ((.roleId // null) as $r | ($r != null and ($owner | index($r)) != null))
-                    or any(.roles[]?; .name | ascii_downcase == "owner") )) )
-      ' >/dev/null 2>&1; then
+  details="$(auth_get "${BASE}/api/admin/personal-dashboard/${pid}")"
+  if printf '%s' "$details" | jq -e 'any((.roles // [])[]; (.name // "") | ascii_downcase == "owner")' >/dev/null 2>&1; then
     PROJECT_ID="$pid"
     break
   fi
-done < <(printf '%s' "$PROJECTS_JSON" | jq -r '(.projects // .) | .[]?.id')
+done < <(printf '%s' "$DASHBOARD" | jq -r '(.projects // [])[].id')
+
+# Fallback: if you participate in exactly one project, use it even when the Owner-role probe was
+# inconclusive (e.g. ownership granted through a custom role name).
+if [ -z "$PROJECT_ID" ] && [ "$PROJECT_COUNT" = "1" ]; then
+  PROJECT_ID="$(printf '%s' "$DASHBOARD" | jq -r '(.projects // [])[0].id')"
+fi
 
 if [ -z "$PROJECT_ID" ]; then
-  die "Could not find a project owned by your team group (role 'Owner'). Check the PAT belongs to your workshop account."
+  die "Could not find a project you own among your ${PROJECT_COUNT} dashboard project(s). Check the PAT belongs to your workshop account."
 fi
 
 PNUM="${PROJECT_ID#project-}"
