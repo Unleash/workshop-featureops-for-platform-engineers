@@ -50,6 +50,15 @@ export const FORCE_PROVISION = ['1', 'true', 'yes'].includes(
   trim(process.env.UNLEASH_FORCE_PROVISION ?? '').toLowerCase(),
 );
 
+/**
+ * Bypass the destroy loop's "no Layer sentinel → skip" guard so every project is torn down even
+ * when its sentinel is missing (e.g. a create run interrupted before applyTags left orphans). Off
+ * by default (skip projects we can't confirm the provisioner provisioned).
+ */
+export const FORCE_DESTROY = ['1', 'true', 'yes'].includes(
+  trim(process.env.UNLEASH_FORCE_DESTROY ?? '').toLowerCase(),
+);
+
 /** Environments to provision flags into. */
 export const ENVIRONMENTS = splitWords(
   process.env.UNLEASH_ENVIRONMENTS ?? 'development production',

@@ -11,10 +11,12 @@
  * The actor service account, its role, and project access are owned by Terraform and removed by
  * `terraform destroy` — which the Makefile runs AFTER this, so the Actions are gone first.
  *
- * Idempotent: a missing resource (404) is fine, so this is safe to run standalone or twice.
+ * Idempotent: a missing resource (404) is fine, so this is safe to run standalone or twice. The
+ * per-project block is sentinel-guarded — it runs only for projects carrying the Layer sentinel
+ * (the same "provisioned?" probe the create loop uses); UNLEASH_FORCE_DESTROY bypasses the guard.
  */
-import { PROJECTS } from './config';
-import { projectExists } from './setup/projects';
+import { PROJECTS, FORCE_DESTROY } from './config';
+import { projectExists, projectProvisioned } from './setup/projects';
 import { withChangeRequestsDisabled } from './setup/change-requests';
 import { archiveFlags } from './flags/flags';
 import { deleteSegments } from './setup/segments';
@@ -34,6 +36,15 @@ const run = async (): Promise<void> => {
     for (const project of PROJECTS) {
       if (!(await projectExists(project))) {
         console.warn(`[destroy] ${project} not found — already gone, skipping teardown.`);
+        continue;
+      }
+      // Reuse the create-side sentinel: archiveFlags (below) DELETEs the kill-switch flag the
+      // Layer tag lives on, so this probe MUST run first. No sentinel → nothing of ours to remove
+      // (never provisioned, or already torn down) — skip the wasted per-project teardown calls.
+      if (!FORCE_DESTROY && !(await projectProvisioned(project))) {
+        console.warn(
+          `[destroy] ${project} already deprovisioned — skipping (set UNLEASH_FORCE_DESTROY=1 to re-run).`,
+        );
         continue;
       }
       await deleteMasterKillSwitchAction(project);
