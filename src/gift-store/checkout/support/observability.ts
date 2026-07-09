@@ -4,9 +4,10 @@ import type { Config } from './config';
 import { metricPrefix } from './feature-flags';
 
 /**
- * Prometheus registry with default process metrics + our business metrics. Every metric name is
- * prefixed with this project's `pNNN_` (see `metricPrefix`) so scrapes across attendee projects
- * never collide — the same convention used for flag names and context fields.
+ * Prometheus registry with default process metrics + our business metrics. Metric names carry this
+ * project's prefix (see `metricPrefix`) so scrapes across attendee projects sharing one Unleash
+ * instance never collide — the same convention used for flag names and context fields. The prefix is
+ * empty for a self-paced attendee, which prom-client treats as "no prefix".
  */
 export const registry = new client.Registry();
 client.collectDefaultMetrics({ register: registry, prefix: metricPrefix });

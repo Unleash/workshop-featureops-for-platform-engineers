@@ -1,9 +1,10 @@
 /**
  * DESTROY entrypoint — the counterpart to index.ts. Removes everything the provisioner created
  * from EVERY project in UNLEASH_PROJECTS, so `terraform destroy` can then drop the projects:
- *   1. archive the feature flags (CR-guarded production lifted/restored) — per project
- *   2. delete the pNNN_internal-users segment (before the pNNN_email field it references)
- *   3. delete the project-scoped context fields (pNNN_region, pNNN_email)
+ *   1. archive the feature flags (a change-request guard, if the attendee enabled one, is lifted
+ *      and then restored) — per project
+ *   2. delete the internal-users segment (before the email context field it references)
+ *   3. delete the project-scoped context fields (region, email)
  * then undo the instance-global actions once: delete the Layer tag type, the Golden Release
  * Rollout, and the master-kill-switch signal endpoint (its per-project Actions are removed in the
  * loop), and revive the built-in "Default" project.
@@ -11,11 +12,16 @@
  * The actor service account, its role, and project access are owned by Terraform and removed by
  * `terraform destroy` — which the Makefile runs AFTER this, so the Actions are gone first.
  *
+ * Under UNLEASH_SELF_PACED the master kill switch and the "Default" project were never touched on
+ * the way in (see index.ts), so they are left alone on the way out. The project itself is NOT
+ * deleted: it is the attendee's own, on their own instance, and there is no Terraform behind this
+ * to drop it — they remove it in the UI if they want to.
+ *
  * Idempotent: a missing resource (404) is fine, so this is safe to run standalone or twice. The
  * per-project block is sentinel-guarded — it runs only for projects carrying the Layer sentinel
  * (the same "provisioned?" probe the create loop uses); UNLEASH_FORCE_DESTROY bypasses the guard.
  */
-import { PROJECTS, FORCE_DESTROY } from './config';
+import { PROJECTS, FORCE_DESTROY, SELF_PACED } from './config';
 import { projectExists, projectProvisioned } from './setup/projects';
 import { withChangeRequestsDisabled } from './setup/change-requests';
 import { archiveFlags } from './flags/flags';
@@ -47,7 +53,9 @@ const run = async (): Promise<void> => {
         );
         continue;
       }
-      await deleteMasterKillSwitchAction(project);
+      if (!SELF_PACED) {
+        await deleteMasterKillSwitchAction(project);
+      }
       await withChangeRequestsDisabled(project, () => archiveFlags(project));
       await deleteSegments(project);
       await deleteContextFields(project);
@@ -55,8 +63,10 @@ const run = async (): Promise<void> => {
     await deleteTagType();
     await deleteReleaseTemplate();
     await disableRemoteMcp();
-    await deleteMasterKillSwitchSignal();
-    await reviveDefaultProject();
+    if (!SELF_PACED) {
+      await deleteMasterKillSwitchSignal();
+      await reviveDefaultProject();
+    }
     console.log('[destroy] Done.');
   } catch (error: unknown) {
     console.error('[destroy] Failed:', error);

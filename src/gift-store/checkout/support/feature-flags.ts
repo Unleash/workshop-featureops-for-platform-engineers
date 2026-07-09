@@ -9,26 +9,35 @@ import { initialize, type Context, type Unleash } from 'unleash-client';
 import type { FastifyBaseLogger } from 'fastify';
 import type { Config } from './config';
 
-// This tier evaluates flags for ONE attendee project (project-NNN). Both the flag names and the
-// project-scoped context-field names carry that number as a `pNNN_` prefix, supplied via
-// UNLEASH_PROJECT_NUMBER. There is no default: an absent value means "not configured yet", so we
-// fail loudly rather than silently evaluating some other project's flags.
-const requireProjectNumber = (): string => {
-  const value = process.env.UNLEASH_PROJECT_NUMBER?.trim();
+// This tier evaluates flags for ONE Unleash project, named by UNLEASH_PROJECT_ID. There is no
+// default: an absent value means "not configured yet", so we fail loudly rather than silently
+// evaluating some other project's flags.
+const requireProjectId = (): string => {
+  const value = process.env.UNLEASH_PROJECT_ID?.trim();
   if (!value) {
     throw new Error(
-      'UNLEASH_PROJECT_NUMBER is required. Run `make workshop-configure` (it infers your ' +
-        'project from your Unleash permissions), or set it manually to your assigned number.',
+      'UNLEASH_PROJECT_ID is required. Run `make workshop-configure` (it detects the project ' +
+        'you own from your Unleash permissions), or set it manually to your project id.',
     );
   }
   return value;
 };
-export const PROJECT_NUMBER = requireProjectNumber();
-const flag = (suffix: string): string => `p${PROJECT_NUMBER}_${suffix}`;
-/** Context property key for this project's context fields (e.g. pNNN_region, pNNN_email). */
-export const contextKey = (name: string): string => `p${PROJECT_NUMBER}_${name}`;
-/** Prometheus metric-name prefix for this project, e.g. "pNNN_" (keeps metrics project-scoped). */
-export const metricPrefix = `p${PROJECT_NUMBER}_`;
+export const PROJECT_ID = requireProjectId();
+
+// Flag and context-field names may carry a project prefix. They do when many attendee projects share
+// one Unleash instance and their globally-unique context-field names would otherwise collide — then
+// `make workshop-configure` sets UNLEASH_FLAG_PREFIX to `pNNN_` for project-NNN. A self-paced attendee
+// owns their instance and has nothing to collide with, so their prefix is empty. Unlike the project
+// id, an EMPTY prefix is a valid, configured state — never a missing one.
+export const FLAG_PREFIX = process.env.UNLEASH_FLAG_PREFIX?.trim() ?? '';
+const flag = (suffix: string): string => `${FLAG_PREFIX}${suffix}`;
+/** Context property key for this project's context fields (e.g. p001_region, or plain `region`). */
+export const contextKey = (name: string): string => `${FLAG_PREFIX}${name}`;
+/**
+ * Prometheus metric-name prefix. Reusing the flag prefix verbatim is safe because it is always
+ * `p<digits>_` or empty — a hyphenated project slug would not be a legal metric name.
+ */
+export const metricPrefix = FLAG_PREFIX;
 
 export const FLAGS = {
   /** When ON, the checkout accepts and applies promo codes. */

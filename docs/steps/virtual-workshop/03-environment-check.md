@@ -15,7 +15,7 @@ Get to a known-good state: your `.env` is filled, the sample app is running loca
   - Keep it handy (and **don't lose it**) — you'll paste it in the next task below.
 - [ ] **Run `make workshop-configure`.**
   - It asks for your region and instance, asks you to paste the generated _PAT_, and then fills `.env` for you.
-    - It prefills the client / frontend / MCP URLs, your project number (auto-detected as the project you own, which it also stars for you), and all four SDK tokens.
+    - It prefills the client / frontend / MCP URLs, your project id (auto-detected as the project you own, which it also stars for you), your flag prefix, and all four SDK tokens.
   - No need to copy-paste individual values (except the _PAT_ generated previously).
 - [ ] **Start the app** with `make dev` (or `make docker-up` - but then remember to run `make docker-down` at the end).
 - [ ] In a second terminal, run `make workshop-final-check` to verify readiness.
@@ -25,13 +25,14 @@ Get to a known-good state: your `.env` is filled, the sample app is running loca
 ## Outcome / success
 
 `make workshop-final-check` ends with a clear verdict — **"You are good to go!"** (green), **"I found some warnings"** (yellow), or **"Something is broken"** (red) — followed by:
-- a summary with your **project name (`project-NNN`)**
-- your **flag prefix (`pNNN_`)**
+
+- a summary with your **project id** (e.g. `project-001`)
+- your **flag prefix** (e.g. `p001_`, or `none` — see the [note on prefixes](README.md))
 - a clickable link straight to **your flags** in the Unleash UI
 - application links (for _development_ and _production_ environments)
 - ready-to-copy `export` commands for the MCP server (you'll use those in the next step).
 
-The app boots, your project and its `development` / `production` environments exist, and the store loads in the browser.
+The app boots, your project and its `development` / `production` environments exist, the **remote MCP server is enabled** (checked for you — you'll connect to it in the next step), and the store loads in the browser.
 
 You're now at the same known-good starting line as everyone else, ready to connect your AI assistant in the 4th step.
 

@@ -6,7 +6,8 @@
  * Layer tag type.
  *
  * The first two milestones target the built-in `userId` context with example emails: a template is
- * instance-global, so it cannot reference a project-scoped field (pNNN_email) or segment. Their
+ * instance-global, so it cannot reference a project-scoped field (the `email` context field) or
+ * segment. Their
  * strategies are meant to be adjusted per project when the template is APPLIED to a flag (the
  * template description says as much) — that is the workshop-time activity, not provisioning.
  */

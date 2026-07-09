@@ -7,6 +7,7 @@ This repository contains a full-stack demo application that represents a typical
 > Feature flags are evaluated against a **cloud-hosted Unleash** instance. Self-paced workshop? Start a 14-day free trial (no credit card required): [Start Free Trial](https://www.getunleash.io).
 
 It is a deliberately small but realistically structured app:
+
 - a [React.js](https://react.dev)-based storefront
 - a Node.js [Fastify](https://fastify.dev) checkout backend
 - isolated fake payment providers integrated via redirect-based payment flow:
@@ -20,9 +21,9 @@ The demo contains a few feature flags built-in already, but the main goal is to 
 ### Dependencies
 
 | Tool           | Minimum version | Required? |
-|----------------|-----------------|-----------|
-| Node.js        | ^22.0.0         | ✅         |
-| GNU Make       | _any_           | ✅         |
+| -------------- | --------------- | --------- |
+| Node.js        | ^22.0.0         | ✅        |
+| GNU Make       | _any_           | ✅        |
 | Docker         | ^29.0.0         |           |
 | Docker Compose | ^5.0.0          |           |
 | pnpm           | ^11.8.0         |           |
@@ -37,7 +38,7 @@ If you want to prepare for the workshop **ahead of time**, `git clone` this repo
 make workshop-pre-check
 ```
 
-As an optional step if you're planning to use Docker, you can pre-pull all the necessary *Docker* images:
+As an optional step if you're planning to use Docker, you can pre-pull all the necessary _Docker_ images:
 
 ```bash
 make docker-pull
@@ -47,11 +48,17 @@ Then, during the actual workshop you will follow the guidelines from the lecture
 
 ### For the users doing this workshop in a self-paced way
 
-_Eventually_, this repository will contain all guidelines and instructions to run the same experience on your own, by using the [Unleash](https://www.getunleash.io) _free trial_ version, but _not at the moment_.
+You can run the whole thing on your own, against an [Unleash](https://www.getunleash.io) _free trial_ instance. `make workshop-configure` will offer to create your project, its feature flags, and its SDK tokens for you.
 
-## Contributing and Development
+1. Sign up for an Unleash free trial (14 days, **no credit card required**).
+2. `git clone` this repository, then run `make workshop-pre-check`.
+3. Create a _Personal Access Token_ (_PAT_) in the Unleash.
+4. Enable the _remote MCP server_ in the Unleash admin UI.
+5. Run `make workshop-configure` and follow the prompts (it asks before creating anything).
+6. In another terminal: `make dev`.
+7. Run `make workshop-final-check`, then follow the workshop steps from _[Step 4](docs/steps/virtual-workshop/04-wire-mcp.md)_ onward.
 
-_Eventually_, all details will be in [docs/development.md](docs/development.md), but _not at the moment_.
+The full walkthrough — including what differs from the facilitated workshop, how to use an existing Unleash instance, and how to set things up by hand — is in [docs/steps/self-paced/README.md](docs/steps/self-paced/README.md).
 
 ## Editions
 

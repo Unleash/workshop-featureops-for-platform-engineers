@@ -7,8 +7,7 @@ Connect your AI coding assistant to the **remote Unleash MCP server** so it can 
 >
 > The remote Unleash MCP server supports OAuth2 DCR, and that is the **recommended** way to authenticate a client — the assistant registers itself and gets tokens through an interactive browser sign-in, with no long-lived secret pasted into config.
 >
-> **It requires SSO**, however, and that is **not workable in this workshop**: we don't control which email domains attendees sign in with, so there is no
-single SSO provider we can wire everyone through. We therefore fall back to a **Personal Access Token (PAT) presented as a `Bearer` token** (what Step 3 configured).
+> **It requires SSO**, however, and that is **not workable in this workshop**: we don't control which email domains attendees sign in with, so there is no single SSO provider we can wire everyone through. We therefore fall back to a **Personal Access Token (PAT) presented as a `Bearer` token** (what Step 3 configured).
 >
 > For your own real instance with SSO configured, prefer OAuth2 DCR over a static PAT.
 
@@ -33,7 +32,7 @@ single SSO provider we can wire everyone through. We therefore fall back to a **
 
 Your assistant reports the `unleash` MCP server as connected and lists at least the following tools: `evaluate_change`, `detect_flag`, `create_flag`, `wrap_change`, `set_flag_rollout`, `get_flag_state`, `toggle_flag_environment`, `remove_flag_strategy`, `cleanup_flag`.
 
-A read-only call (e.g. checking a seeded flag's state) succeeds against **your** project. The platform (not each developer) has shipped the connection, naming convention, and FeatureOps guidelines via the committed config and `AGENTS.md`.
+A read-only call (e.g., checking a seeded flag's state) succeeds against **your** project. The platform (not each developer) has shipped the connection, naming convention, and FeatureOps guidelines via the committed config and `AGENTS.md`.
 
 <details>
 <summary><strong>Example prompt</strong>: List the tools available in Unleash MCP server</summary>
@@ -41,6 +40,7 @@ A read-only call (e.g. checking a seeded flag's state) succeeds against **your**
 ```
 List all the tools available in the Unleash MCP server, and briefly describe what each tool does.
 ```
+
 </details>
 
 <details>
@@ -49,11 +49,16 @@ List all the tools available in the Unleash MCP server, and briefly describe wha
 ```
 Use the Unleash MCP server to scan the codebase, find all the flags, and then prepare a table with their state for all environments (in the project available based on my permissions). As an additional column, add a lifecycle stage for each flag.
 ```
+
 </details>
 
 ## Tips and Tricks
 
 > If the MCP tool call fails, check that both env vars are exported in the same shell your assistant launched from, and that the token is a valid PAT for your instance.
+
+> The server has to be switched on instance-wide before any of this works. `make workshop-final-check` (Step 3) verifies that for you — if it reported the remote MCP server as **disabled**, enable it in the Unleash admin UI and re-run before debugging your assistant's config.
+
+> The assistant has no idea which project is yours, and the remote MCP server has no default — so **tell it your project id** in the prompt (`make workshop-final-check` prints it). The same goes for your flag prefix if you have one.
 
 ## Next step
 

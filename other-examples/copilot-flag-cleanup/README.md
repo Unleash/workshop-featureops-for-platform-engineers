@@ -27,7 +27,7 @@ Based on Unleash's [Automating Feature Flag Cleanup with GitHub Copilot](https:/
 ## Layout
 
 | Path                                | Role                                                                         |
-|-------------------------------------|------------------------------------------------------------------------------|
+| ----------------------------------- | ---------------------------------------------------------------------------- |
 | `.env.example`                      | Local config for the webhook scripts — copy to `.env`.                       |
 | `github/workflows/cleanup-flag.yml` | The Actions workflow (inert here). Copy to `.github/workflows/` to activate. |
 | `copilot/mcp.json`                  | Unleash MCP server config for the Copilot cloud agent.                       |
@@ -45,7 +45,7 @@ It uses the **same remote** Unleash MCP server the repo already uses interactive
 ## What to configure
 
 | Where                   | Name                                                             | Purpose                                                             |
-|-------------------------|------------------------------------------------------------------|---------------------------------------------------------------------|
+| ----------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------- |
 | Repo **secret**         | `COPILOT_TRIGGER_TOKEN`                                          | Lets the workflow assign issues to `@copilot`.                      |
 | Copilot **environment** | `COPILOT_MCP_UNLEASH_MCP_SERVER_URL` → `$UNLEASH_MCP_SERVER_URL` | Remote MCP server URL.                                              |
 | Copilot **environment** | `COPILOT_MCP_UNLEASH_PAT_TOKEN` → `$UNLEASH_MCP_PAT_TOKEN`       | MCP server PAT.                                                     |

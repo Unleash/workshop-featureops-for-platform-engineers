@@ -16,4 +16,4 @@ Then:
 - Update or remove the affected tests (drop flag-OFF cases, delete now-unused flag setup).
 - Open one small, focused PR that links the issue.
 
-**Always name the project (`project-NNN`) explicitly on every MCP call** — the remote MCP server has no default project. Flag names follow `p<NNN>_<rl|ex|op|kx|pm>_[v_]<domain>_<component>_<slug>`.
+**Always name the project explicitly on every MCP call** — the remote MCP server has no default project, and the id varies (`project-001`, `featureops-workshop`, …); take it from the issue, or ask. Flag names follow `[<prefix>_]<rl|ex|op|kx|pm>_[v_]<domain>_<component>_<slug>`, where the prefix is project-specific and may be absent — read the project's enforced naming pattern rather than assuming one.

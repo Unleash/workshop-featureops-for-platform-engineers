@@ -1,14 +1,14 @@
 /**
  * ★ The single place the backend pushes Unleash Impact Metrics. These ride out on the same
  *   SDK client (and the same 5s metrics interval) as flag-usage metrics — no OTEL, no extra
- *   transport. A release-template safeguard watches `pNNN_checkout_error_total` to pause or
+ *   transport. A release-template safeguard watches `<prefix>checkout_error_total` to pause or
  *   disable a rollout when checkouts start failing.
  *
  * Why explicit counters instead of labels? The SDK's public `incrementCounter` only attaches
  * the static context labels `{ appName, environment }` (the dimensions a safeguard can filter
  * on). Everything else we'd want to slice by — the leg the request was on (redirect vs
  * after-payment) and the outcome (success vs error) — is therefore encoded in the metric NAME,
- * one explicit counter per case. Every name carries this project's `pNNN_` prefix.
+ * one explicit counter per case. Every name carries this project's flag prefix, when it has one.
  *
  * Like `isFlagEnabled`, every emit is a safe no-op until `startImpactMetrics` has run with a
  * live client (e.g. when `UNLEASH_API_TOKEN` is empty, or in tests).
@@ -17,7 +17,7 @@ import type { Unleash } from 'unleash-client';
 import type { FastifyBaseLogger } from 'fastify';
 import { metricPrefix } from './feature-flags';
 
-/** The explicit counters we push. Names are project-scoped via `metricPrefix` (`pNNN_`). */
+/** The explicit counters we push. Names are project-scoped via `metricPrefix` (may be empty). */
 export const IMPACT_METRICS = {
   checkoutSuccess: {
     name: `${metricPrefix}checkout_success_total`,

@@ -1,8 +1,9 @@
 # Provisions the workshop's platform-engineering setup as code, ONE ISOLATED STACK PER USER:
 #   - users read from a CSV (email,name,surname)
 #   - per user: a project (project-NNN) with development + production environments enabled
-#   - production guarded by change requests (1 approval), approved by a facilitator/admin; the
-#     attendee can't approve their own but applies it once approved — segregation of duties
+#   - production ships UNGUARDED; the attendee enables change requests themselves in step 8. The
+#     roles are granted here up front, so once enabled a facilitator/admin approves and the
+#     attendee applies — they can't approve their own — segregation of duties
 #   - per user: a single-member group (just the attendee) that owns that user's project and is
 #     read-only everywhere else; the facilitators/admins approve via a direct role grant, not membership
 #
@@ -110,15 +111,19 @@ resource "unleash_project_environment" "development" {
   environment_name = data.unleash_environment.development.name
 }
 
-# Production is guarded by change requests: one approval required before any change
-# to a flag in this environment is applied.
+# Production ships UNGUARDED: enabling change requests is the attendee's own first task in
+# step 8 (docs/steps/virtual-workshop/08-lifecycle-governance.md), so steps 5-7 apply instantly
+# instead of queueing a draft change request the facilitator has to approve. The approver/applier
+# roles below are still granted up front, so the guard works the moment the attendee turns it on.
+#
+# Consequence: once an attendee enables change requests, this resource drifts. Do not re-`apply`
+# mid-workshop — it would switch the guard back off underneath them.
 resource "unleash_project_environment" "production" {
   for_each = local.users_by_number
 
   project_id              = unleash_project.team[each.key].id
   environment_name        = data.unleash_environment.production.name
-  change_requests_enabled = true
-  required_approvals      = 1
+  change_requests_enabled = false
 }
 
 # A single custom project role that can approve and apply change requests in production.

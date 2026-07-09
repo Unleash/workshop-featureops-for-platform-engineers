@@ -1,5 +1,5 @@
 import { unleashApi } from '../api';
-import { ENVIRONMENTS, projectNumber } from '../config';
+import { ENVIRONMENTS, projectPrefix } from '../config';
 
 interface Variant {
   name: string;
@@ -10,7 +10,7 @@ interface Variant {
 }
 
 interface FlagDef {
-  /** Name without the project prefix; the full name is `p<number>_<suffix>`. */
+  /** Name without the project prefix; the full name is `<projectPrefix><suffix>`. */
   suffix: string;
   type: 'release' | 'experiment' | 'operational' | 'kill-switch' | 'permission';
   description: string;
@@ -21,7 +21,7 @@ interface FlagDef {
 }
 
 // The workshop's four flags, named per the project's enforced convention
-// (p<NNN>_<type>_[v_]<domain>_<component>_<slug>). Each gets a 100% flexibleRollout strategy in
+// ([<prefix>]<type>_[v_]<domain>_<component>_<slug>). Each gets a 100% flexibleRollout strategy in
 // every environment so a Toolbar flip turns it fully on; only the kill switch ships enabled.
 const FLAGS: FlagDef[] = [
   {
@@ -67,9 +67,8 @@ const FLAGS: FlagDef[] = [
   },
 ];
 
-/** Full flag name for a project, e.g. (project-NNN, rl_…promo-code) → pNNN_rl_…promo-code. */
-const flagName = (project: string, suffix: string): string =>
-  `p${projectNumber(project)}_${suffix}`;
+/** Full flag name for a project, e.g. (project-001, rl_…promo-code) → p001_rl_…promo-code. */
+const flagName = (project: string, suffix: string): string => `${projectPrefix(project)}${suffix}`;
 
 /** The flag-name suffixes, exposed so other tooling can reference the same source of truth. */
 export const FLAG_SUFFIXES: string[] = FLAGS.map((flag) => flag.suffix);
@@ -80,7 +79,7 @@ if (!killSwitchFlag) {
   throw new Error('No kill-switch flag defined in FLAGS — the master kill switch needs one.');
 }
 
-/** Full name of a project's kill-switch flag, e.g. pNNN_kx_checkout-page_headline_link-to-real-unleash-store. */
+/** Full name of a project's kill-switch flag, e.g. p001_kx_checkout-page_headline_link-to-real-unleash-store. */
 export const killSwitchFlagName = (project: string): string =>
   flagName(project, killSwitchFlag.suffix);
 

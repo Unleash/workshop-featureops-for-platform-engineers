@@ -3,7 +3,7 @@
 This is what the webhook opens in your repository when the promo-code flag is marked **completed** in Unleash. It is shown here for reference only — you do not create it by hand; Unleash does, via `issue-body.mustache`. The `@copilot` assignment is added by the GitHub Actions workflow once the `unleash-flag-completed` label lands.
 
 > [!NOTE]
-> `project-NNN` / `pNNN_` presented below are placeholders — your real issue carries your own project number.
+> `project-NNN` / `pNNN_` presented below are placeholders — your real issue carries your own project id, and your own flag prefix (which may be empty, in which case the flag is just `rl_checkout-page_payment-section_promo-code`).
 
 ---
 

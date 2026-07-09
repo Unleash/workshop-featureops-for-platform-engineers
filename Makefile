@@ -63,7 +63,7 @@ REFRESH ?= true
 USER_BATCH_SIZE  ?= 20
 USER_BATCH_PAUSE ?= 60
 
-.PHONY: help workshop-pre-check workshop-configure workshop-final-check setup install dev clean \
+.PHONY: help workshop-pre-check workshop-configure workshop-provision workshop-final-check setup install dev clean \
         docker-pull docker-up docker-down docker-image docker-logs \
         unleash-create unleash-destroy \
         master-kill-switch master-kill-switch-web \
@@ -102,6 +102,7 @@ help:
 	@echo "  make maint-test       Run tests             ·  make maint-build  Production build"
 	@echo "  make unleash-create   Provision project/users/envs + import flags"
 	@echo "  make unleash-destroy  Archive flags and tear everything down"
+	@echo "  make workshop-provision  Self-paced: create one project + flags + tokens (run by workshop-configure)"
 	@echo "  (provisioning needs terraform + TF_VAR_unleash_base_url / TF_VAR_unleash_token in .env)"
 	@echo ""
 	@echo "Apps (development):  web :8080  ·  api :8081 (/health,/metrics)"
@@ -120,9 +121,18 @@ workshop-pre-check: install
 setup: workshop-pre-check
 
 # 2) Create .env (if needed) and fill it from the Unleash API using your own PAT —
-#    no copy-pasting tokens, URLs, or your project number.
+#    no copy-pasting tokens, URLs, or your project id.
 workshop-configure: ensure-env
 	@bash support/scripts/workshop-configure.sh
+
+# 2b) Self-paced only: create the attendee's project (enabling the instance's development +
+#     production environments on it), its flags, and its four SDK tokens — the work Terraform does
+#     in the facilitated flow. Invoked BY workshop-configure.sh once you grant it permission, which
+#     is why the pnpm/npm invocation lives here and not duplicated in the script. It reads
+#     UNLEASH_BASE_URL / UNLEASH_ADMIN_TOKEN / UNLEASH_PROJECTS / UNLEASH_PROJECT_NAME from the
+#     environment the script exports.
+workshop-provision: install
+	@UNLEASH_SELF_PACED=1 $(call pm_filter,unleash-provisioner,provision)
 
 # 4) Verify readiness and print your project, your flags URL, and the MCP export commands.
 workshop-final-check:

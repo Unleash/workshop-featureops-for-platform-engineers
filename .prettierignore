@@ -6,6 +6,14 @@
 # Dependencies:
 pnpm-lock.yaml
 
+# The Backstage sample is a standalone, yarn-managed app outside the pnpm workspace (eslint skips
+# `other-examples/**` for the same reason). Its package.json sets `"prettier":
+# "@backstage/cli/config/prettier"`, so prettier tries to load that config and dies — `Cannot find
+# package '@backstage/cli'` — because a root `pnpm install` never installs its dependencies. It also
+# vendors a 3 MB `.yarn/releases/*.cjs` that we have no business reformatting. Its own toolchain
+# formats it. The other samples have no prettier config of their own, so they stay formatted here.
+other-examples/backstage-with-unleash/
+
 # Terraform state & local artifacts:
 *.tfstate
 *.tfstate.*
