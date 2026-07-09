@@ -58,7 +58,7 @@ You can run the whole thing on your own, against an [Unleash](https://www.getunl
 6. In another terminal: `make dev`.
 7. Run `make workshop-final-check`, then follow the workshop steps from _[Step 4](docs/steps/virtual-workshop/04-wire-mcp.md)_ onward.
 
-The full walkthrough — including what differs from the facilitated workshop, how to use an existing Unleash instance, and how to set things up by hand — is in [docs/steps/self-paced/README.md](docs/steps/self-paced/README.md).
+The full walkthrough - including what differs from the facilitated workshop, how to use an existing Unleash instance, and how to set things up by hand - is in [the self-paced README file](docs/steps/self-paced/README.md).
 
 ## Editions
 
