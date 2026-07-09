@@ -10,6 +10,10 @@ interface ImportMetaEnv {
   readonly VITE_UNLEASH_URL?: string;
   readonly VITE_UNLEASH_CLIENT_KEY?: string;
   readonly VITE_NODE_ENV?: string;
+  /** The Unleash project this build evaluates flags against. Required — the app fails fast without it. */
+  readonly VITE_UNLEASH_PROJECT_ID?: string;
+  /** Prefix on every flag + context-field name. Empty when the attendee owns their own instance. */
+  readonly VITE_UNLEASH_FLAG_PREFIX?: string;
 }
 
 interface ImportMeta {

@@ -15,24 +15,28 @@ import {
 import { parseEnvironment } from '@gift-store/commerce';
 import { DEFAULT_REGION, getInitialEmail, getInitialUserId, SESSION_ID } from './identity';
 
-// Each attendee runs against their OWN project (project-NNN), and both the flag names and the
-// context-field names carry that project's number as a `pNNN_` prefix. The number is baked at
-// build time via VITE_UNLEASH_PROJECT_NUMBER. There is no default: an absent value means "not
-// configured yet", so the build fails loudly rather than baking in some other project's number.
-const requireProjectNumber = (): string => {
-  const value = (import.meta.env.VITE_UNLEASH_PROJECT_NUMBER as string | undefined)?.trim();
+// Each attendee runs against their OWN Unleash project, named by VITE_UNLEASH_PROJECT_ID and baked
+// in at build time. There is no default: an absent value means "not configured yet", so the build
+// fails loudly rather than baking in some other project's id.
+const requireProjectId = (): string => {
+  const value = import.meta.env.VITE_UNLEASH_PROJECT_ID?.trim();
   if (!value) {
     throw new Error(
-      'VITE_UNLEASH_PROJECT_NUMBER is required. Run `make workshop-configure` (it infers your ' +
-        'project from your Unleash permissions), or set it manually to your assigned number.',
+      'VITE_UNLEASH_PROJECT_ID is required. Run `make workshop-configure` (it detects the ' +
+        'project you own from your Unleash permissions), or set it manually to your project id.',
     );
   }
   return value;
 };
-const PROJECT_NUMBER = requireProjectNumber();
-const flag = (suffix: string): string => `p${PROJECT_NUMBER}_${suffix}`;
-/** Context property key for this attendee's project-scoped context field (e.g. pNNN_region). */
-const contextKey = (name: string): string => `p${PROJECT_NUMBER}_${name}`;
+requireProjectId();
+
+// Flag and context-field names may carry a project prefix — `pNNN_` when many attendee projects
+// share one Unleash instance, empty for a self-paced attendee who owns theirs. Unlike the project
+// id, an EMPTY prefix is a valid, configured state. Mirrors the checkout API's `feature-flags.ts`.
+const FLAG_PREFIX = import.meta.env.VITE_UNLEASH_FLAG_PREFIX?.trim() ?? '';
+const flag = (suffix: string): string => `${FLAG_PREFIX}${suffix}`;
+/** Context property key for this attendee's project-scoped context field (e.g. p001_region). */
+const contextKey = (name: string): string => `${FLAG_PREFIX}${name}`;
 
 export const FLAGS = {
   /** When ON, the payment section shows a promo-code field. */

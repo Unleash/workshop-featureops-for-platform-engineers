@@ -4,14 +4,16 @@
 #
 # Confirms an attendee is at a known-good state once `make workshop-configure` has filled .env and
 # the app is running, and prints a banner with everything they need for the rest of the workshop.
-# Four checks:
+# Five checks:
 #   1. an AI assistant CLI is on PATH
 #   2. the Unleash PAT (UNLEASH_PAT) authenticates against your instance (UNLEASH_URL)
 #   3. the sample app boots (checkout API + storefront respond)
 #   4. your project + development/production environments exist
+#   5. the remote Unleash MCP server is enabled (you wire an assistant to it in step 4)
 #
-# Only a non-booting app or a rejected token fails the script; a missing assistant CLI is a
-# warning. curl + jq are verified earlier by `make workshop-pre-check`, so they are assumed here.
+# Only a non-booting app, a rejected token, or a demonstrably disabled MCP server fails the script;
+# a missing assistant CLI is a warning. curl + jq are verified earlier by `make workshop-pre-check`,
+# so they are assumed here.
 #
 # Usage:  bash support/scripts/workshop-final-check.sh   (or: make workshop-final-check)
 
@@ -80,13 +82,14 @@ wait_for_200() {
   return 1
 }
 
-PROJECT_NUMBER="$(from_env UNLEASH_PROJECT_NUMBER)"
-if [ -z "$PROJECT_NUMBER" ]; then
-  bad "UNLEASH_PROJECT_NUMBER is not set — run 'make workshop-configure' (it infers your project from your Unleash permissions)."
+PROJECT_ID="$(from_env UNLEASH_PROJECT_ID)"
+if [ -z "$PROJECT_ID" ]; then
+  bad "UNLEASH_PROJECT_ID is not set — run 'make workshop-configure' (it detects the project you own)."
   exit 1
 fi
-PROJECT_ID="project-${PROJECT_NUMBER}"
-PREFIX="p${PROJECT_NUMBER}_"
+# An EMPTY prefix is a valid, configured state (a self-paced attendee owns their instance, so their
+# flags need no disambiguating prefix) — it is never the "unconfigured" signal. That is UNLEASH_PROJECT_ID's job.
+PREFIX="$(from_env UNLEASH_FLAG_PREFIX)"
 
 WEB_URL="$(from_env PUBLIC_WEB_URL)"; WEB_URL="${WEB_URL:-http://localhost:8080}"
 API_URL="$(from_env PUBLIC_API_URL)"; API_URL="${API_URL:-http://localhost:8081}"
@@ -156,7 +159,7 @@ if [ -z "$ADMIN_URL" ] || [ -z "$ADMIN_TOKEN" ]; then
 else
   overview="$(curl -s --max-time 8 -H "Authorization: $ADMIN_TOKEN" "${ADMIN_URL}/api/admin/projects/${PROJECT_ID}/overview" 2>/dev/null)"
   if [ -z "$overview" ] || printf '%s' "$overview" | grep -q '"error"\|Not Found\|"name":"NotFound"'; then
-    bad "Project ${BOLD}${PROJECT_ID}${RESET} not found — check UNLEASH_PROJECT_NUMBER (re-run 'make workshop-configure')."
+    bad "Project ${BOLD}${PROJECT_ID}${RESET} not found — check UNLEASH_PROJECT_ID (re-run 'make workshop-configure')."
   else
     ok "Project ${BOLD}${PROJECT_ID}${RESET} exists."
     for env in development production; do
@@ -167,6 +170,51 @@ else
       fi
     done
   fi
+fi
+
+# --- 5. remote MCP server ----------------------------------------------------
+# You wire your AI assistant to <base>/api/admin/mcp in step 4; if the instance-level toggle is off,
+# you'd only find out when the assistant fails. GET /api/admin/remote-mcp/settings returns
+# { "enabled": bool } — an Enterprise feature, and an instance-level setting, so a scoped attendee
+# PAT may be refused (403).
+#
+# That 403 means different things in the two flows, hence the split below. With a `pNNN_` flag prefix
+# your project is `project-NNN` — facilitator-provisioned — and the same provisioning run enables the
+# remote MCP server, so an unreadable setting tells us nothing is wrong. A self-paced attendee turned
+# the toggle on by hand and deserves to be told we couldn't confirm it. We still issue the request
+# either way: it is what catches a provisioned instance where MCP was later switched back off.
+printf '\n%s5) Remote MCP server%s\n' "$BOLD" "$RESET"
+if [ -z "$ADMIN_URL" ] || [ -z "$ADMIN_TOKEN" ]; then
+  bad "Skipped — needs UNLEASH_URL / UNLEASH_PAT (see check 2)."
+else
+  mcp_response="$(curl -s -w '\n%{http_code}' --max-time 8 -H "Authorization: $ADMIN_TOKEN" \
+    "${ADMIN_URL}/api/admin/remote-mcp/settings" 2>/dev/null || printf '\n000')"
+  mcp_status="$(printf '%s' "$mcp_response" | tail -n1)"
+  mcp_body="$(printf '%s' "$mcp_response" | sed '$d')"
+
+  case "$mcp_status" in
+    200)
+      if printf '%s' "$mcp_body" | jq -e '.enabled == true' >/dev/null 2>&1; then
+        ok "Remote MCP server is enabled."
+      else
+        bad "Remote MCP server is DISABLED — enable it at ${ADMIN_URL}/admin/mcp, then re-run."
+      fi
+      ;;
+    401)
+      bad "PAT rejected (HTTP 401) reading the remote MCP settings — re-run 'make workshop-configure'."
+      ;;
+    403)
+      if [ -n "$PREFIX" ]; then
+        ok "Skipped: ${BOLD}${PROJECT_ID}${RESET} is facilitator-provisioned, and provisioning enables remote MCP."
+      else
+        warn "Couldn't check the remote MCP state: your PAT lacks instance-admin permission."
+        warn "Confirm it is enabled at ${ADMIN_URL}/admin/mcp."
+      fi
+      ;;
+    *)
+      warn "Remote MCP settings unavailable (HTTP ${mcp_status}) — an Enterprise feature, or the instance is unreachable."
+      ;;
+  esac
 fi
 
 # --- banner + summary -------------------------------------------------------
@@ -182,9 +230,15 @@ fi
 
 printf '\n%sYour workshop project%s\n' "$BOLD" "$RESET"
 printf '  Project:                      %s%s%s\n' "$BOLD" "$PROJECT_ID" "$RESET"
-printf '  Flag prefix:                  %s%s%s   (every flag/segment/context field/impact metric you create starts with this)\n' "$BOLD" "$PREFIX" "$RESET"
+if [ -n "$PREFIX" ]; then
+  printf '  Flag prefix:                  %s%s%s   (every flag/segment/context field/impact metric you create starts with this)\n' "$BOLD" "$PREFIX" "$RESET"
+else
+  printf '  Flag prefix:                  %snone%s   (your flags/segments/context fields/impact metrics are named without a prefix)\n' "$BOLD" "$RESET"
+fi
 if [ -n "$ADMIN_URL" ]; then
   printf '  Your flags:                   %s/projects/%s\n' "$ADMIN_URL" "$PROJECT_ID"
+  # Step 8's first task: production ships unguarded, and the attendee turns change requests on here.
+  printf '  Change requests (step 8):     %s/projects/%s/settings/change-requests\n' "$ADMIN_URL" "$PROJECT_ID"
   printf '  Audit log for your project:   %s/projects/%s/logs\n' "$ADMIN_URL" "$PROJECT_ID"
 fi
 

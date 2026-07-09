@@ -12,7 +12,7 @@ import { unleashApi } from '../api';
 import {
   MASTER_KILL_SWITCH_ACTOR_USERNAME,
   MASTER_KILL_SWITCH_INTENT,
-  projectNumber,
+  projectPrefix,
 } from '../config';
 import { killSwitchFlagName } from '../flags/flags';
 
@@ -26,9 +26,9 @@ interface ActionSet {
   name: string;
 }
 
-/** Action set name for a project, e.g. pNNN_master-kill-switch_disable-swag-store-link. */
+/** Action set name for a project, e.g. p001_master-kill-switch_disable-swag-store-link. */
 const actionName = (project: string): string =>
-  `p${projectNumber(project)}_master-kill-switch_disable-swag-store-link`;
+  `${projectPrefix(project)}master-kill-switch_disable-swag-store-link`;
 
 /**
  * Resolve the numeric id of the Terraform-provisioned actor service account. Returns null when it's

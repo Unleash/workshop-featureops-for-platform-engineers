@@ -1,25 +1,37 @@
 /**
  * CREATE entrypoint. Provisions everything the official Unleash Terraform provider can't, for
- * EVERY attendee project (project-NNN, project-NNN+1, …) listed in UNLEASH_PROJECTS:
- *   1. project-scoped context fields (pNNN_region, pNNN_email)
+ * EVERY project listed in UNLEASH_PROJECTS:
+ *   1. project-scoped context fields (p001_region, p001_email — unprefixed when self-paced)
  *   2. the workshop's feature flags (+ strategies, variants, per-env enabled state)
- *   3. the pNNN_internal-users segment (references pNNN_email)
+ *   3. the internal-users segment (references the email context field)
  *   4. per-flag Layer tags (the global Layer tag type is created once)
  *
- * Plus instance-global actions done once (not per project): archiving the built-in "Default"
- * project, the Layer tag type, the "Golden Release Rollout" (the org-wide rollout policy of
- * Segment 6), and the master-kill-switch signal endpoint (whose per-project Actions are then
- * created in the loop).
+ * Plus instance-global actions done once (not per project): the Layer tag type, the "Golden Release
+ * Rollout" (the org-wide rollout policy of Segment 6), and the remote MCP server.
  *
- * Run after `terraform apply`. Flag mutations on the change-request-guarded `production`
- * environment are wrapped so the guard is lifted, applied, then restored — per project.
+ * Two flows share this code:
+ *   • FACILITATED (default) — run after `terraform apply`, which owns the projects, users, roles and
+ *     SDK tokens. Also archives the built-in "Default" project and provisions the master kill switch
+ *     (whose Actions need a Terraform service account).
+ *   • SELF-PACED (UNLEASH_SELF_PACED=1) — one attendee, one project, no Terraform. This CREATES the
+ *     project and its SDK tokens, and skips both the "Default" archive (destructive on an instance we
+ *     don't own) and the master kill switch (a facilitator tool with no Terraform behind it here).
+ *
+ * Flag mutations on a change-request-guarded environment are wrapped so the guard is lifted, applied,
+ * then restored to whatever it was — per project.
  */
-import { PROJECTS, FORCE_PROVISION } from './config';
-import { projectExists, projectProvisioned } from './setup/projects';
+import { PROJECTS, PROJECT_NAME, FORCE_PROVISION, SELF_PACED } from './config';
+import {
+  applyProjectSettings,
+  createProject,
+  projectExists,
+  projectProvisioned,
+} from './setup/projects';
 import { createContextFields } from './setup/context-fields';
 import { withChangeRequestsDisabled } from './setup/change-requests';
 import { createFlags } from './flags/flags';
 import { createSegments } from './setup/segments';
+import { createProjectTokens } from './setup/api-tokens';
 import { applyTags, createTagType } from './flags/tags';
 import { createReleaseTemplate } from './setup/release-templates';
 import { archiveDefaultProject } from './setup/default-project';
@@ -30,16 +42,32 @@ import { createMasterKillSwitchAction, resolveActorId } from './setup/master-kil
 const run = async (): Promise<void> => {
   try {
     console.log(
-      `[provision] Provisioning ${PROJECTS.length.toString()} project(s): ${PROJECTS.join(', ')}`,
+      `[provision] Provisioning ${PROJECTS.length.toString()} project(s): ${PROJECTS.join(', ')}` +
+        (SELF_PACED ? ' (self-paced)' : ''),
     );
-    await archiveDefaultProject();
+    if (!SELF_PACED) {
+      await archiveDefaultProject();
+    }
     await createTagType();
     await createReleaseTemplate();
     await enableRemoteMcp();
+
     // The signal endpoint + actor are instance-wide; the per-project Actions bind to them below.
-    const signal = await createMasterKillSwitchSignal();
+    // Self-paced attendees have neither (both are Terraform-provisioned), so skip the whole thing.
+    const signal = SELF_PACED ? null : await createMasterKillSwitchSignal();
     const actorId = signal ? await resolveActorId() : null;
+
     for (const project of PROJECTS) {
+      // Self-paced: stand the project up before anything can be written into it. These three are
+      // idempotent and deliberately sit BEFORE the "already provisioned" skip below, so a run that
+      // died midway (project created, flags tagged, tokens not yet minted) converges on a re-run.
+      if (SELF_PACED) {
+        if (!(await createProject(project, PROJECT_NAME))) {
+          continue;
+        }
+        await applyProjectSettings(project);
+        await createProjectTokens(project);
+      }
       if (!(await projectExists(project))) {
         console.warn(`[provision] ${project} not found — skipping project-dependent steps.`);
         continue;

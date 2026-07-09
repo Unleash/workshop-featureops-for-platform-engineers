@@ -20,7 +20,11 @@ const createPayment = async (
   if (!response.ok) {
     // PayBro is rock-solid and never returns an error code, but the seam stays symmetric.
     const body = (await response.json().catch(() => ({}))) as { errorCode?: string };
-    throw new ProviderPaymentError('paybro', body.errorCode ?? 'unknown_provider_error', response.status);
+    throw new ProviderPaymentError(
+      'paybro',
+      body.errorCode ?? 'unknown_provider_error',
+      response.status,
+    );
   }
 
   return (await response.json()) as ProviderPayment;

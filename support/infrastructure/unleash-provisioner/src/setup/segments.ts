@@ -1,8 +1,8 @@
 import { unleashApi } from '../api';
-import { projectNumber } from '../config';
+import { projectPrefix } from '../config';
 
-/** Segment name for a project, e.g. project-NNN → pNNN_internal-users. */
-const segmentName = (project: string): string => `p${projectNumber(project)}_internal-users`;
+/** Segment name for a project, e.g. project-001 → p001_internal-users. */
+const segmentName = (project: string): string => `${projectPrefix(project)}internal-users`;
 
 interface SegmentSummary {
   id: number;
@@ -37,7 +37,7 @@ export const createSegments = async (project: string): Promise<void> => {
       project,
       constraints: [
         {
-          contextName: `p${projectNumber(project)}_email`,
+          contextName: `${projectPrefix(project)}email`,
           operator: 'STR_ENDS_WITH',
           values: ['@getunleash.io'],
           caseInsensitive: true,

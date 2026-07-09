@@ -25,7 +25,11 @@ const createPayment = async (
   if (!response.ok) {
     // Dashed sends a unified `errorCode` on the failure body; surface it on the typed error.
     const body = (await response.json().catch(() => ({}))) as { errorCode?: string };
-    throw new ProviderPaymentError('dashed', body.errorCode ?? 'unknown_provider_error', response.status);
+    throw new ProviderPaymentError(
+      'dashed',
+      body.errorCode ?? 'unknown_provider_error',
+      response.status,
+    );
   }
 
   return (await response.json()) as ProviderPayment;

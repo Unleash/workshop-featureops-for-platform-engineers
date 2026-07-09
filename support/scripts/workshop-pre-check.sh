@@ -78,7 +78,7 @@ if [ -f .env ]; then
 else
   # No .env yet: any of these already exported in the shell would shadow what
   # `make workshop-configure` is about to write into .env. Flag them so they can be unset.
-  WATCH="UNLEASH_PAT UNLEASH_URL UNLEASH_PROJECT_NUMBER UNLEASH_API_TOKEN UNLEASH_API_TOKEN_PRODUCTION UNLEASH_MCP_SERVER_URL UNLEASH_MCP_PAT_TOKEN"
+  WATCH="UNLEASH_PAT UNLEASH_URL UNLEASH_PROJECT_ID UNLEASH_FLAG_PREFIX UNLEASH_API_TOKEN UNLEASH_API_TOKEN_PRODUCTION UNLEASH_MCP_SERVER_URL UNLEASH_MCP_PAT_TOKEN"
   stray=""
   for var in $WATCH; do
     [ -n "${!var:-}" ] && stray="${stray} ${var}"

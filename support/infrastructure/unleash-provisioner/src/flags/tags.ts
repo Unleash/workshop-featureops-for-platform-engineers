@@ -1,5 +1,5 @@
 import { unleashApi } from '../api';
-import { projectNumber } from '../config';
+import { projectPrefix } from '../config';
 
 // Orange "Layer" tag type describing WHERE each flag is evaluated. #F97316 is Tailwind's
 // orange-500 — the same orange the wider Unleash demos use for this kind of tag. The tag TYPE is
@@ -46,7 +46,7 @@ export const deleteTagType = async (): Promise<void> => {
 /** Apply the per-flag Layer tags within one project, using that project's prefixed flag names. */
 export const applyTags = async (project: string): Promise<void> => {
   console.log(`[tags] ${project}: applying Layer tags ...`);
-  const prefix = `p${projectNumber(project)}_`;
+  const prefix = projectPrefix(project);
   for (const [suffix, value] of Object.entries(FLAG_LAYER)) {
     const flag = `${prefix}${suffix}`;
     const { status } = await unleashApi(`/projects/${project}/tags`, {

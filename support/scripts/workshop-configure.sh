@@ -6,10 +6,17 @@
 # instance id) and paste a Personal Access Token (PAT) you create in the Unleash UI; the script
 # then calls the Unleash admin API with that PAT to discover everything else:
 #   • the Unleash / Frontend / MCP URLs (derived from region + instance)
-#   • which project you own — ownership is granted to your team group (e.g. "Team NNN"), so it
-#     finds the project whose owning group lists you as a member — and stars it for you
+#   • which project is yours — and, when you have none, offers to CREATE one for you
 #   • the four SDK tokens (backend + frontend, development + production) for that project
 # and writes them all back into .env in place.
+#
+# Two flows land here:
+#   • FACILITATED — Terraform already made you a `project-NNN` and granted your team group Owner on
+#     it. We find it, and your flags carry a `pNNN_` prefix (hundreds of projects share the instance,
+#     and context-field names are globally unique, so they must not collide).
+#   • SELF-PACED — your own free-trial instance, no Terraform. We offer to create the project, its
+#     flags, and its SDK tokens by running the same `unleash-provisioner` the facilitator uses
+#     (`make workshop-provision`). You own the instance, so your flags need no prefix.
 #
 # .env is created from .env.example by the `make workshop-configure` prereq (`ensure-env`),
 # so this script assumes it already exists.
@@ -17,6 +24,11 @@
 # Usage:  bash support/scripts/workshop-configure.sh   (or: make workshop-configure)
 
 set -u
+
+# Default id for a project we create. Deliberately NOT `project-001`: that shape is reserved for
+# Terraform-provisioned projects, and it is what switches the `pNNN_` flag prefix back on.
+DEFAULT_PROJECT_ID="featureops-workshop"
+MANUAL_SETUP_DOC="docs/steps/self-paced/manual-setup.md"
 
 # --- pretty output ----------------------------------------------------------
 if [ -t 1 ] && [ "${NO_COLOR:-}" = "" ]; then
@@ -106,42 +118,141 @@ set_env UNLEASH_PAT            "$PAT"
 set_env UNLEASH_MCP_PAT_TOKEN  "$PAT"
 ok "Wrote Unleash, Frontend, and MCP URLs + your PAT."
 
-# --- 4. find the project you own --------------------------------------------
-# Project ownership is granted to your *team group* (e.g. "Team NNN"), not to your user directly
-# (see support/infrastructure/terraform/main.tf). Rather than list *every* project on the instance
-# (there can be 400+) and probe /access on each, ask the personalized dashboard: GET
+# --- 4. resolve the project --------------------------------------------------
+# Ownership is granted to your *team group* (e.g. "Team NNN"), not to your user directly (see
+# support/infrastructure/terraform/main.tf). Rather than list *every* project on the instance (there
+# can be 400+) and probe /access on each, ask the personalized dashboard: GET
 # /api/admin/personal-dashboard returns only the projects *you* participate in (any role). We then
 # confirm the Owner role per candidate via GET /api/admin/personal-dashboard/{projectId}, whose
 # .roles[] are *your* roles in that project — so no instance-wide scan, and no user-id lookup.
 DASHBOARD="$(auth_get "${BASE}/api/admin/personal-dashboard")"
-PROJECT_COUNT="$(printf '%s' "$DASHBOARD" | jq '(.projects // []) | length' 2>/dev/null || echo 0)"
-{ [ "$PROJECT_COUNT" -gt 0 ]; } 2>/dev/null \
-  || die "Your personal dashboard lists no projects — check the PAT belongs to your workshop account."
 
+# Ids of the dashboard projects on which you hold the Owner role (never the built-in `default`).
+owned_projects() {
+  local pid details
+  while IFS= read -r pid; do
+    [ -n "$pid" ] || continue
+    [ "$pid" = "default" ] && continue
+    details="$(auth_get "${BASE}/api/admin/personal-dashboard/${pid}")"
+    if printf '%s' "$details" | jq -e 'any((.roles // [])[]; (.name // "") | ascii_downcase == "owner")' >/dev/null 2>&1; then
+      printf '%s\n' "$pid"
+    fi
+  done < <(printf '%s' "$DASHBOARD" | jq -r '(.projects // [])[].id')
+}
+
+OWNED="$(owned_projects)"
+
+# `GET /api/admin/user` returns meSchema, whose `.permissions[]` are this token's permissions. ADMIN
+# subsumes everything; CREATE_PROJECT is the specific grant we need. This is what tells an attendee
+# pointing at an existing corporate instance that their PAT is too narrow — before we try and fail.
+ME="$(auth_get "${BASE}/api/admin/user")"
+if printf '%s' "$ME" | jq -e 'any((.permissions // [])[]; (.permission // "") | . == "ADMIN" or . == "CREATE_PROJECT")' >/dev/null 2>&1; then
+  CAN_CREATE_PROJECT="yes"
+else
+  CAN_CREATE_PROJECT=""
+fi
+
+# Resolution order. Each step is a strictly better signal than the next.
 PROJECT_ID=""
-while IFS= read -r pid; do
-  [ -n "$pid" ] || continue
-  details="$(auth_get "${BASE}/api/admin/personal-dashboard/${pid}")"
-  if printf '%s' "$details" | jq -e 'any((.roles // [])[]; (.name // "") | ascii_downcase == "owner")' >/dev/null 2>&1; then
-    PROJECT_ID="$pid"
-    break
-  fi
-done < <(printf '%s' "$DASHBOARD" | jq -r '(.projects // [])[].id')
 
-# Fallback: if you participate in exactly one project, use it even when the Owner-role probe was
-# inconclusive (e.g. ownership granted through a custom role name).
-if [ -z "$PROJECT_ID" ] && [ "$PROJECT_COUNT" = "1" ]; then
-  PROJECT_ID="$(printf '%s' "$DASHBOARD" | jq -r '(.projects // [])[0].id')"
-fi
+# (1) A Terraform-provisioned `project-NNN` you own. Deterministic, so it always wins.
+PROJECT_ID="$(printf '%s' "$OWNED" | grep -E '^project-[0-9]+$' | head -n1 || true)"
 
+# (2) Re-running configure: the project named in .env, if it still exists. Existence is enough — we
+#     put that id there ourselves, and an admin who created a project via the API is not always
+#     reported as its "Owner" on the personal dashboard, so demanding ownership here would send a
+#     returning self-paced attendee back through the creation prompt every time.
 if [ -z "$PROJECT_ID" ]; then
-  die "Could not find a project you own among your ${PROJECT_COUNT} dashboard project(s). Check the PAT belongs to your workshop account."
+  PREVIOUS="$(grep -E '^UNLEASH_PROJECT_ID=' .env | tail -n1 | cut -d= -f2- | tr -d "\"'")"
+  if [ -n "$PREVIOUS" ] && [ "$(auth_status "${BASE}/api/admin/projects/${PREVIOUS}/overview")" = "200" ]; then
+    PROJECT_ID="$PREVIOUS"
+    ok "Reusing ${BOLD}${PROJECT_ID}${RESET} from your .env."
+  fi
 fi
 
-PNUM="${PROJECT_ID#project-}"
-set_env UNLEASH_PROJECT_NUMBER      "$PNUM"
-set_env VITE_UNLEASH_PROJECT_NUMBER "$PNUM"
-ok "You own ${BOLD}${PROJECT_ID}${RESET} → project number ${BOLD}${PNUM}${RESET} (flag prefix p${PNUM}_)."
+# (3) Nothing to go on. Offer to create a project — we never adopt one we didn't make, because
+#     provisioning writes four flags, two context fields, and a segment into it.
+CREATE_PROJECT=""
+if [ -z "$PROJECT_ID" ]; then
+  printf '\n%sNo workshop project found for you on this instance.%s\n' "$BOLD" "$RESET"
+
+  OTHERS="$(auth_get "${BASE}/api/admin/projects" | jq -r '(.projects // [])[] | select(.id != "default") | "  • \(.id)  (\(.name))"' 2>/dev/null || true)"
+  if [ -n "$OTHERS" ]; then
+    printf 'This instance has other projects, but none of them is yours to use for the workshop:\n%s\n' "$OTHERS"
+    printf 'I will not write workshop flags into a project I did not create.\n'
+  fi
+
+  # Surface a too-narrow token BEFORE asking anything: there is no point prompting for a project id
+  # we could never create. This is the failure mode of pointing the workshop at a corporate instance.
+  if [ -z "$CAN_CREATE_PROJECT" ]; then
+    printf '\n'
+    die "Your PAT cannot create projects — it holds neither ADMIN nor CREATE_PROJECT.
+     Ask an Unleash admin for a token that can, or create the project by hand following
+     ${BOLD}${MANUAL_SETUP_DOC}${RESET}, then re-run ${BOLD}make workshop-configure${RESET}."
+  fi
+
+  printf '\nI can create one for you. That means: a project (with this instance'\''s existing\n'
+  printf 'development and production environments enabled on it), the workshop'\''s feature\n'
+  printf 'flags, and 4 SDK tokens.\n\n'
+
+  # Unleash accepts [A-Za-z0-9_~.-] in a project id (createProjectSchema). Reject anything else here
+  # rather than letting it surface as an opaque HTTP 400 from the provisioner.
+  while :; do
+    read -rp "Project id [${DEFAULT_PROJECT_ID}]: " PROJECT_ID
+    PROJECT_ID="${PROJECT_ID:-$DEFAULT_PROJECT_ID}"
+    if [[ "$PROJECT_ID" =~ ^[A-Za-z0-9_~.-]+$ ]]; then
+      break
+    fi
+    printf '  %s⚠%s Use only letters, digits, and _ ~ . - (no spaces).\n' "$YELLOW" "$RESET"
+  done
+  read -rp "Create it? [y/N]: " CONFIRM
+
+  case "$CONFIRM" in
+    [yY]|[yY][eE][sS]) CREATE_PROJECT="yes" ;;
+    *)
+      printf '\n'
+      die "Stopped — nothing was created.
+     To set it up by hand instead, follow ${BOLD}${MANUAL_SETUP_DOC}${RESET}
+     (minimum: one project, one promo-code flag, four SDK tokens), then re-run
+     ${BOLD}make workshop-configure${RESET}."
+      ;;
+  esac
+fi
+
+# --- 4b. create the project (self-paced) -------------------------------------
+# Delegated to `make workshop-provision`, which owns the pnpm/npm invocation of the same
+# unleash-provisioner the facilitator runs — so the command lives in exactly one place.
+if [ -n "$CREATE_PROJECT" ]; then
+  printf '\n%sCreating %s …%s\n\n' "$BOLD" "$PROJECT_ID" "$RESET"
+  if ! UNLEASH_BASE_URL="$BASE" UNLEASH_ADMIN_TOKEN="$PAT" \
+       UNLEASH_PROJECTS="$PROJECT_ID" UNLEASH_PROJECT_NAME="$PROJECT_ID" \
+       "${MAKE:-make}" workshop-provision; then
+    printf '\n'
+    die "Provisioning failed — see the output above. Nothing else was written to .env."
+  fi
+  printf '\n'
+  ok "Created and provisioned ${BOLD}${PROJECT_ID}${RESET}."
+fi
+
+# The flag prefix exists only to keep the facilitated workshop's many `project-NNN` siblings from
+# colliding on globally-unique names. Your own instance needs no such disambiguation. Keep this rule
+# byte-for-byte in step with `projectPrefix()` in the provisioner's src/config.ts — the provisioner
+# names the flags, this names what the app looks for, and they have to agree.
+if [[ "$PROJECT_ID" =~ ^project-([0-9]+)$ ]]; then
+  FLAG_PREFIX="p${BASH_REMATCH[1]}_"
+else
+  FLAG_PREFIX=""
+fi
+
+set_env UNLEASH_PROJECT_ID       "$PROJECT_ID"
+set_env VITE_UNLEASH_PROJECT_ID  "$PROJECT_ID"
+set_env UNLEASH_FLAG_PREFIX      "$FLAG_PREFIX"
+set_env VITE_UNLEASH_FLAG_PREFIX "$FLAG_PREFIX"
+if [ -n "$FLAG_PREFIX" ]; then
+  ok "Your project is ${BOLD}${PROJECT_ID}${RESET} (flag prefix ${BOLD}${FLAG_PREFIX}${RESET})."
+else
+  ok "Your project is ${BOLD}${PROJECT_ID}${RESET} (flags are named without a prefix)."
+fi
 
 # --- 5. star the project ----------------------------------------------------
 fav_status="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 -X POST -H "Authorization: $PAT" -H "Content-Type: application/json" -d '{}' "${BASE}/api/admin/projects/${PROJECT_ID}/favorites" 2>/dev/null || echo 000)"

@@ -1,5 +1,5 @@
 /**
- * Archive the built-in "Default" project so attendees only ever see their own project-NNN. Every
+ * Archive the built-in "Default" project so attendees only ever see their own project. Every
  * Unleash instance ships with a "Default" project (id `default`, lowercase, despite the display
  * name) — it is INSTANCE-level, not something Terraform or the per-attendee provisioning owns, so
  * this is archived/revived ONCE, outside the per-project loop, like the Layer tag type and the
@@ -28,7 +28,9 @@ export const archiveDefaultProject = async (): Promise<void> => {
     console.log('[default-project] "Default" already archived.');
     return;
   }
-  const { status } = await unleashApi(`/projects/archive/${DEFAULT_PROJECT_ID}`, { method: 'POST' });
+  const { status } = await unleashApi(`/projects/archive/${DEFAULT_PROJECT_ID}`, {
+    method: 'POST',
+  });
   if (status === 200 || status === 202) {
     console.log('[default-project] "Default" archived.');
   } else {

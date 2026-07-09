@@ -51,9 +51,10 @@ services:
       # Cloud Unleash — supplied via .env (UNLEASH_API_TOKEN is minted by Terraform).
       UNLEASH_URL: ${UNLEASH_URL:-}
       UNLEASH_API_TOKEN: ${UNLEASH_API_TOKEN:-}
-      # Attendee's project number — prefixes the flag + context-field names the API evaluates.
-      # No default: run `make workshop-configure` (it infers your project from your permissions).
-      UNLEASH_PROJECT_NUMBER: ${UNLEASH_PROJECT_NUMBER:?set UNLEASH_PROJECT_NUMBER — run make workshop-configure}
+      # Attendee's project. No default: run `make workshop-configure` (it detects the project you own).
+      # The flag prefix, in contrast, is legitimately empty for a self-paced attendee.
+      UNLEASH_PROJECT_ID: ${UNLEASH_PROJECT_ID:?set UNLEASH_PROJECT_ID — run make workshop-configure}
+      UNLEASH_FLAG_PREFIX: ${UNLEASH_FLAG_PREFIX:-}
     ports:
       - '8081:8081'
     depends_on:
@@ -71,7 +72,8 @@ services:
         VITE_UNLEASH_URL: ${VITE_UNLEASH_URL:-}
         VITE_UNLEASH_CLIENT_KEY: ${VITE_UNLEASH_CLIENT_KEY:-}
         VITE_NODE_ENV: development
-        VITE_UNLEASH_PROJECT_NUMBER: ${VITE_UNLEASH_PROJECT_NUMBER:?set VITE_UNLEASH_PROJECT_NUMBER — run make workshop-configure}
+        VITE_UNLEASH_PROJECT_ID: ${VITE_UNLEASH_PROJECT_ID:?set VITE_UNLEASH_PROJECT_ID — run make workshop-configure}
+        VITE_UNLEASH_FLAG_PREFIX: ${VITE_UNLEASH_FLAG_PREFIX:-}
     ports:
       - '8080:8080'
     depends_on:
@@ -95,8 +97,9 @@ services:
       # Cloud Unleash — production token supplied via .env (minted by Terraform).
       UNLEASH_URL: ${UNLEASH_URL:-}
       UNLEASH_API_TOKEN: ${UNLEASH_API_TOKEN_PRODUCTION:-}
-      # Same project as the development stack (project number is environment-independent).
-      UNLEASH_PROJECT_NUMBER: ${UNLEASH_PROJECT_NUMBER:?set UNLEASH_PROJECT_NUMBER — run make workshop-configure}
+      # Same project as the development stack (the project is environment-independent).
+      UNLEASH_PROJECT_ID: ${UNLEASH_PROJECT_ID:?set UNLEASH_PROJECT_ID — run make workshop-configure}
+      UNLEASH_FLAG_PREFIX: ${UNLEASH_FLAG_PREFIX:-}
     ports:
       - '8091:8091'
     depends_on:
@@ -114,7 +117,8 @@ services:
         VITE_UNLEASH_URL: ${VITE_UNLEASH_URL:-}
         VITE_UNLEASH_CLIENT_KEY: ${VITE_UNLEASH_CLIENT_KEY_PRODUCTION:-}
         VITE_NODE_ENV: production
-        VITE_UNLEASH_PROJECT_NUMBER: ${VITE_UNLEASH_PROJECT_NUMBER:?set VITE_UNLEASH_PROJECT_NUMBER — run make workshop-configure}
+        VITE_UNLEASH_PROJECT_ID: ${VITE_UNLEASH_PROJECT_ID:?set VITE_UNLEASH_PROJECT_ID — run make workshop-configure}
+        VITE_UNLEASH_FLAG_PREFIX: ${VITE_UNLEASH_FLAG_PREFIX:-}
     ports:
       - '8090:8080'
     depends_on:

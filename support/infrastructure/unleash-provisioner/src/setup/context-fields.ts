@@ -1,5 +1,5 @@
 import { unleashApi } from '../api';
-import { projectNumber } from '../config';
+import { projectPrefix } from '../config';
 
 interface LegalValue {
   value: string;
@@ -7,7 +7,7 @@ interface LegalValue {
 }
 
 interface ContextFieldDef {
-  /** Bare name; the project number is prefixed at provision time (e.g. region → pNNN_region). */
+  /** Bare name; the project prefix is applied at provision time (e.g. region → p001_region). */
   suffix: string;
   description: string;
   stickiness: boolean;
@@ -16,8 +16,9 @@ interface ContextFieldDef {
 
 // PROJECT-SCOPED context fields. The official Terraform provider's unleash_context_field has no
 // `project` argument, so these live here (the Admin API's createContextFieldSchema accepts a
-// `project`). Context-field NAMES are globally unique across the instance, so each project's
-// fields are prefixed with its number (pNNN_region, pNNN+1_region, …) to stay isolated per attendee.
+// `project`). Context-field NAMES are globally unique across the instance, which is precisely why
+// the facilitated flow's many sibling projects each prefix theirs (p001_region, p002_region, …); a
+// self-paced attendee owns their instance, so theirs are simply `region` / `email`.
 const CONTEXT_FIELDS: ContextFieldDef[] = [
   {
     suffix: 'region',
@@ -38,8 +39,7 @@ const CONTEXT_FIELDS: ContextFieldDef[] = [
   },
 ];
 
-const fieldName = (project: string, suffix: string): string =>
-  `p${projectNumber(project)}_${suffix}`;
+const fieldName = (project: string, suffix: string): string => `${projectPrefix(project)}${suffix}`;
 
 export const createContextFields = async (project: string): Promise<void> => {
   console.log(`[context-fields] ${project}: creating project-scoped context fields ...`);
