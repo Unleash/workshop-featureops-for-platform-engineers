@@ -16,7 +16,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "fastify": "^5.2.1",
+    "fastify": "^5.12.1",
     "pino-pretty": "^13.0.0"
   },
   "devDependencies": {

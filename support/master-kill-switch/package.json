@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "fastify": "^5.2.1"
+    "fastify": "^5.12.1"
   },
   "devDependencies": {
     "tsx": "^4.19.2"
