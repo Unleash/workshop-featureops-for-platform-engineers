@@ -7,6 +7,7 @@ Provisions the Unleash resources the official `Unleash/unleash` Terraform provid
 - **Project-scoped context fields** — `p001_region` and `p001_email` (the provider's `unleash_context_field` can only create instance-global fields, and field names are globally unique — hence the prefix).
 - **Feature flags** — the workshop's four `p001_…` flags, with a 100% `flexibleRollout` strategy per environment, strategy variants, and per-environment enabled state.
 - **Segment** — the project-scoped `p001_internal-users` segment (`p001_email` ends with `@getunleash.io`).
+- **Release templates** — per project, the **Project Golden Release Rollout**: a project-level release template (Unleash 8.2+) whose canary milestone targets `p001_email` and whose internal milestone uses the `p001_internal-users` segment, so workshop step 6 applies it as is. Plus the instance-wide **Golden Release Rollout** (global, created once), kept as a generic example with `userId` rules. Every cloud-hosted instance (a free trial included) runs 8.2 or newer; on an older, self-hosted instance the project template is skipped with a warning.
 - **Tags** — the orange `Layer` tag type (global, created once) and a per-flag tag describing where each flag is evaluated.
 - **Master kill switch** — the instance-level signal endpoint plus a per-project Action that fires it.
 
@@ -18,7 +19,7 @@ The Admin API client retries on 429 / transient 5xx with backoff, so a many-proj
 
 ## Usage
 
-Driven by `make unleash-create` / `make unleash-destroy` (facilitated) and `make workshop-provision` (self-paced, invoked by `workshop-configure.sh`). Standalone:
+Driven by `make unleash-create` / `make unleash-destroy` (facilitated) and `make workshop-provision` / `make workshop-teardown` (self-paced; `workshop-configure.sh` invokes the first). The make targets pick pnpm or fall back to npm on their own. Standalone:
 
 ```bash
 # Needs admin credentials in the environment. Prefer UNLEASH_BASE_URL / UNLEASH_ADMIN_TOKEN;
@@ -26,10 +27,13 @@ Driven by `make unleash-create` / `make unleash-destroy` (facilitated) and `make
 # Plus the target projects (Terraform output `project_ids`, semicolon-separated):
 UNLEASH_PROJECTS="project-001;project-002" pnpm --dir support/infrastructure/unleash-provisioner provision
 UNLEASH_PROJECTS="project-001;project-002" pnpm --dir support/infrastructure/unleash-provisioner destroy
+# Without pnpm: npm run provision -w unleash-provisioner  (and `destroy` the same way)
 
 # Self-paced: create and provision a single project from scratch.
 UNLEASH_SELF_PACED=1 UNLEASH_PROJECTS="featureops-workshop" UNLEASH_PROJECT_NAME="FeatureOps Workshop" \
-  pnpm --dir support/infrastructure/unleash-provisioner provision
+  make workshop-provision
 ```
+
+A project that is already provisioned is skipped after a one-call probe, so new per-project resources (such as the project release template) reach it only on a forced run: `UNLEASH_FORCE_PROVISION=1`.
 
 Optional overrides: `UNLEASH_ENVIRONMENTS` (default `development production`), `UNLEASH_CR_ENVIRONMENTS` (environments whose change-request guard is lifted around mutations, default `production`), `UNLEASH_PROD_REQUIRED_APPROVALS` (fallback approval count when restoring a guard whose own value the API didn't report, default `1`), `UNLEASH_FORCE_PROVISION`, `UNLEASH_FORCE_DESTROY`.

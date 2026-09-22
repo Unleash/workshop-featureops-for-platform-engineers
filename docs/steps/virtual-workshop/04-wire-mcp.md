@@ -21,9 +21,10 @@ Connect your AI coding assistant to the **remote Unleash MCP server** so it can 
   - **Claude Code** → `.mcp.json`
   - **Cursor** → `.cursor/mcp.json`
   - **GitHub Copilot (VS Code)** → `.vscode/mcp.json`
+  - **GitHub Copilot CLI** → `.github/mcp.json` (_loaded_ once you trust the folder on first launch).
   - **Kiro** → `.kiro/settings/mcp.json`
   - **OpenCode** → `opencode.json`
-  - **Gemini CLI** → `.gemini/settings.json`
+  - **Antigravity CLI** → `.agents/mcp_config.json`
   - **Codex** → `.codex/config.toml` (_autoloaded_ for trusted projects, but remember to set the `url`).
 - [ ] Reload your assistant so it picks up the MCP server.
 - [ ] Ask the assistant to list the Unleash tools and confirm it sees all of them.
@@ -55,6 +56,8 @@ Use the Unleash MCP server to scan the codebase, find all the flags, and then pr
 ## Tips and Tricks
 
 > If the MCP tool call fails, check that both env vars are exported in the same shell your assistant launched from, and that the token is a valid PAT for your instance.
+
+> **GitHub Copilot CLI** does not read `.vscode/mcp.json` — only `.mcp.json`, `.github/mcp.json`, and its own `~/.copilot/mcp-config.json`. It also skips project servers until you trust the folder. Run `/mcp` to check that `unleash` is listed, and `/mcp reload` if it is not. As a last resort, start it with `copilot --additional-mcp-config @.github/mcp.json`.
 
 > The server has to be switched on instance-wide before any of this works. `make workshop-final-check` (Step 3) verifies that for you — if it reported the remote MCP server as **disabled**, enable it in the Unleash admin UI and re-run before debugging your assistant's config.
 

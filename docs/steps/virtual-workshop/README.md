@@ -22,7 +22,7 @@ Work at your own pace inside each step and follow the lecturer's instructions be
 
 **Notes:**
 
-- Your flags, segments, impact metrics, and context fields are scoped to **your own project**. `make workshop-configure` detects it; `make workshop-final-check` prints its id.
+- Your flags, segments, release template, impact metrics, and context fields are scoped to **your own project**. `make workshop-configure` detects it; `make workshop-final-check` prints its id.
 - They may all carry a **flag prefix**, which `make workshop-final-check` also prints. In the facilitated workshop, hundreds of projects share one Unleash instance and some names (context fields especially) must be globally unique — so `project-001` prefixes everything with `p001_`, giving `p001_internal-users`. Working [self-paced](../self-paced/README.md) on your own instance, there is nothing to collide with, so **there is no prefix**: the same segment is just `internal-users`.
 - Wherever these handouts write `<prefix>`, substitute yours — or nothing at all.
 - You create your own _Personal Access Token (PAT)_ and run `make workshop-configure`, which detects your project and fills in the Unleash URLs and tokens for you (_[Step 3](./03-environment-check.md)_).

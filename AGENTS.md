@@ -1,6 +1,6 @@
 # FeatureOps AI coding agents guidelines
 
-> **This is the canonical guideline for every AI coding assistant working in this repository.** Agent-specific files (`CLAUDE.md`, `.github/copilot-instructions.md`, Cursor/Kiro rules, the root `AGENTS.md`) all link or include this file — edit rules here, once.
+> **This is the canonical guideline for every AI coding assistant working in this repository.** Agent-specific files (`CLAUDE.md`, `.github/copilot-instructions.md`, Cursor/Kiro rules, `opencode.json`) all link or include this file, and Codex, GitHub Copilot, and Antigravity read it directly — edit rules here, once.
 
 ## Executive summary (read this first)
 
@@ -9,7 +9,7 @@
 3. **Give every new flag a unique name that matches the project's convention.** The shape is `[<prefix>_]<rl|ex|op|kx|pm>_[v_]<domain>_<component>_<slug>`. Whether there is a prefix, and what it is, depends on the project. **Read the project's enforced naming pattern** (via the MCP server, or the project's settings) before you name anything and derive the prefix from the project's name or number if it uses one. When scanning the codebase for existing flags, remember any prefix may be applied dynamically in the code, so search for the unprefixed suffix.
 4. You **have to** ignore all the files that inside `docs/`, `support/` and `other-examples/` directories. Do not base your decisions, planning, implementation, based on the content available in those places!
 
-The rest of this file is the detail behind those three rules.
+The rest of this file is the detail behind those rules.
 
 ## 1. Project overview and technology
 
@@ -27,13 +27,15 @@ It is the _npm_/_pnpm_ workspace monorepo for an **unofficial FeatureOps gift st
 
 Tech: TypeScript, Fastify, React 19 + Vite, Tailwind v4, `unleash-client` (backend SDK) + `@unleash/proxy-client-react` (frontend), Vitest, ESLint/Prettier. Infrastructure as code: Terraform + a Node `unleash-provisioner` (`support/infrastructure/`).
 
+Every assistant reaches the remote Unleash MCP server through a committed config file that reads `UNLEASH_MCP_SERVER_URL` and `UNLEASH_MCP_PAT_TOKEN` from the environment: Claude Code → `.mcp.json`, Cursor → `.cursor/mcp.json`, GitHub Copilot in VS Code → `.vscode/mcp.json`, GitHub Copilot CLI → `.github/mcp.json` (it never reads `.vscode/mcp.json`), Kiro → `.kiro/settings/mcp.json`, OpenCode → `opencode.json`, Antigravity CLI → `.agents/mcp_config.json` (remote servers use `serverUrl`), Codex → `.codex/config.toml` (literal URL).
+
 ## 2. What is implemented vs. intentionally not wired
 
 **Implemented:**
 
 - **Impact metrics** — `src/gift-store/checkout/support/impact-metrics.ts` pushes six counters via the SDK, each carrying the project's flag prefix (e.g. `p001_checkout_error_total`, or plain `checkout_error_total` in an unprefixed project).
 - **Dashed failure injection** — `src/payment-providers/dashed/support/failure-injection.ts` (session-init failures all envs, capture failures in production) so a safeguard has a live error signal.
-- **Golden Release Rollout** — provisioned instance-wide by `support/infrastructure/unleash-provisioner/src/setup/release-templates.ts`.
+- **Release templates** — provisioned by `support/infrastructure/unleash-provisioner/src/setup/release-templates.ts`: in every project, the project-level **Project Golden Release Rollout**, whose first two milestones target the project's own `<prefix>email` context field and `<prefix>internal-users` segment; and, once for the whole instance, the global **Golden Release Rollout**, kept as a generic example. Project-level templates need Unleash 8.2+. Every cloud-hosted instance (the free trial included) already runs 8.2 or newer; only a self-hosted instance can be older, and there the global template is the fallback.
 
 **Intentionally NOT wired (this is the workshop exercise — wire it behind a flag):**
 
@@ -77,13 +79,17 @@ The **remote** Unleash MCP server does **not** support a default-project setting
 
 Scope new resources correctly — do not try to make an instance-level entity project-scoped.
 
-| Scope                                                     | Entities                                                                                                                                                           |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Instance-level** (shared across all projects)           | Environments (`development`, `production`); tag types (e.g. `Layer`); **release plan templates** (incl. the Golden Release Rollout); the remote MCP server toggle. |
-| **Project-level** (carrying the project's prefix, if any) | Feature flags; the `internal-users` segment; the `region` and `email` context fields; project API tokens; change-request config; custom roles + project access.    |
+| Scope                                                     | Entities                                                                                                                                                                                                                            |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Instance-level** (shared across all projects)           | Environments (`development`, `production`); tag types (e.g. `Layer`); **global release templates** (the Golden Release Rollout example); the remote MCP server toggle.                                                              |
+| **Project-level** (carrying the project's prefix, if any) | Feature flags; the `internal-users` segment; the `region` and `email` context fields; **project release templates** (the Project Golden Release Rollout); project API tokens; change-request config; custom roles + project access. |
+
+A release template that targets a project's segment or context fields must be a **project** release template — a global one cannot reference project-scoped entities.
 
 ### Engineering conventions
 
 - Match the surrounding code's style, naming, and comment density.
 - Keep the strategy seam intact: route via the map lookup in `router.ts`, never a `switch`.
 - Flags are enforced **server-side** in the checkout API — a browser/toolbar override must never be able to grant gated behavior on its own.
+- Keep `package.json` scripts shell-neutral: no `VAR=value cmd` prefixes. npm (and pnpm) run scripts through `cmd.exe` on Windows, where that syntax fails. Put environment in a config file (e.g. `vitest.config.ts` → `test.env`) or in the `Makefile`.
+- Commands for people are `make` targets built on the `Makefile`'s `pm_*` macros, which pick pnpm or fall back to npm. Never document a raw `pnpm …` command as the only way; the root `build`/`test`/`typecheck` scripts are pnpm-only, and a raw `npm run build --workspaces` builds checkout before commerce.

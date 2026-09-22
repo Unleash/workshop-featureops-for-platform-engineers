@@ -40,25 +40,25 @@ Based on Unleash's [Automating Feature Flag Cleanup with GitHub Copilot](https:/
 
 ## How it relates to the live repo
 
-It uses the **same remote** Unleash MCP server the repo already uses interactively (`.mcp.json` at the repo root), with the same env-var names (`UNLEASH_MCP_SERVER_URL`, `UNLEASH_MCP_PAT_TOKEN`). Only the _trigger_ differs: here the Copilot **cloud agent** runs non-interactively from a GitHub issue instead of from your editor.
+It uses the **same remote** Unleash MCP server the repo already uses interactively (`.mcp.json` and `.github/mcp.json` at the repo root), with the same values (`UNLEASH_MCP_SERVER_URL`, `UNLEASH_MCP_PAT_TOKEN`). Only the _trigger_ differs: here the Copilot **cloud agent** runs non-interactively from a GitHub issue instead of from your editor.
 
 ## What to configure
 
-| Where                   | Name                                                             | Purpose                                                             |
-| ----------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Repo **secret**         | `COPILOT_TRIGGER_TOKEN`                                          | Lets the workflow assign issues to `@copilot`.                      |
-| Copilot **environment** | `COPILOT_MCP_UNLEASH_MCP_SERVER_URL` → `$UNLEASH_MCP_SERVER_URL` | Remote MCP server URL.                                              |
-| Copilot **environment** | `COPILOT_MCP_UNLEASH_PAT_TOKEN` → `$UNLEASH_MCP_PAT_TOKEN`       | MCP server PAT.                                                     |
-| Local `.env`            | `TF_VAR_unleash_base_url`, `TF_VAR_unleash_token`                | Admin API, for the webhook scripts (same as Terraform/provisioner). |
-| Local `.env`            | `GITHUB_REPO`, `GITHUB_TOKEN`                                    | Where issues open + a token with `issues: write`.                   |
+| Where                  | Name                                                            | Purpose                                                             |
+| ---------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Repo **secret**        | `COPILOT_TRIGGER_TOKEN`                                         | Lets the workflow assign issues to `@copilot`.                      |
+| Repo **Agents secret** | `COPILOT_MCP_UNLEASH_MCP_SERVER_URL` = `UNLEASH_MCP_SERVER_URL` | Remote MCP server URL.                                              |
+| Repo **Agents secret** | `COPILOT_MCP_UNLEASH_MCP_PAT_TOKEN` = `UNLEASH_MCP_PAT_TOKEN`   | MCP server PAT.                                                     |
+| Local `.env`           | `TF_VAR_unleash_base_url`, `TF_VAR_unleash_token`               | Admin API, for the webhook scripts (same as Terraform/provisioner). |
+| Local `.env`           | `GITHUB_REPO`, `GITHUB_TOKEN`                                   | Where issues open + a token with `issues: write`.                   |
 
-GitHub exposes MCP secrets to the Copilot environment only under the `COPILOT_MCP_` prefix, so map the repo's existing variable names as shown above. Also ensure your org's **"MCP servers in Copilot"** policy is on and the **Copilot coding agent** is enabled for the repository.
+The cloud agent only sees secrets and variables whose names start with `COPILOT_MCP_`, so store the two MCP values under the names above; `copilot/mcp.json` references them as `$COPILOT_MCP_…`. Also ensure your org's **"MCP servers in Copilot"** policy is on and the **Copilot coding agent** is enabled for the repository.
 
 ## How to enable (promote to main)
 
 1. **Workflow** — copy `github/workflows/cleanup-flag.yml` → `.github/workflows/cleanup-flag.yml`.
 2. **Instructions** — append `copilot/cleanup-instructions.md` to `.github/copilot-instructions.md`.
-3. **MCP** — add `copilot/mcp.json` to the repo's Copilot cloud-agent config (repository **Settings ▸ Copilot ▸ Coding agent**, or `.github/copilot/mcp.json`).
+3. **MCP** — paste `copilot/mcp.json` into the repo's Copilot cloud-agent config (repository **Settings ▸ Copilot ▸ MCP servers**). The cloud agent reads it only from there — not from a file in the repository (`.github/mcp.json` is for Copilot CLI).
 4. **Webhook** — from `unleash/`:
    ```sh
    cp .env.example .env      # then fill it in

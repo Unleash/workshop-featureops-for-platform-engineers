@@ -4,7 +4,7 @@ import { projectPrefix } from '../config';
 /** Segment name for a project, e.g. project-001 → p001_internal-users. */
 const segmentName = (project: string): string => `${projectPrefix(project)}internal-users`;
 
-interface SegmentSummary {
+export interface SegmentSummary {
   id: number;
   name: string;
 }
@@ -20,11 +20,16 @@ const fetchSegments = async (): Promise<SegmentSummary[]> => {
   return data.segments ?? [];
 };
 
+/** The project's internal-users segment, if it exists — release templates reference it by id. */
+export const findSegment = async (project: string): Promise<SegmentSummary | undefined> => {
+  const name = segmentName(project);
+  return (await fetchSegments()).find((segment) => segment.name === name);
+};
+
 export const createSegments = async (project: string): Promise<void> => {
   const name = segmentName(project);
   console.log(`[segments] ${project}: creating the "${name}" segment ...`);
-  const existing = await fetchSegments();
-  if (existing.some((segment) => segment.name === name)) {
+  if (await findSegment(project)) {
     console.log(`[segments] ${project}: "${name}" already exists. Skipping.`);
     return;
   }
@@ -57,7 +62,7 @@ export const createSegments = async (project: string): Promise<void> => {
 export const deleteSegments = async (project: string): Promise<void> => {
   const name = segmentName(project);
   console.log(`[segments] ${project}: deleting the "${name}" segment ...`);
-  const segment = (await fetchSegments()).find((candidate) => candidate.name === name);
+  const segment = await findSegment(project);
   if (!segment) {
     console.log(`[segments] ${project}: "${name}" not found. Skipping.`);
     return;

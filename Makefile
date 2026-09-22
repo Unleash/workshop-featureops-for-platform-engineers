@@ -13,9 +13,23 @@
 
 TF := terraform -chdir=support/infrastructure/terraform
 
+# --- Windows guard --------------------------------------------------------
+# Every recipe below is POSIX shell and every script is bash. Run from WSL2 (recommended) or Git
+# Bash; a plain cmd.exe / PowerShell `make` has no `uname`, so fail fast with a pointer instead of
+# a wall of "'test' is not recognized" errors.
+ifeq ($(OS),Windows_NT)
+  ifeq ($(shell uname -s 2>/dev/null),)
+    $(error This Makefile needs a POSIX shell. On Windows, run it from WSL2 (recommended) or Git Bash — see README.md → Dependencies)
+  endif
+endif
+
 # --- Package-manager anti-corrosion layer -----------------------------
 # Prefer pnpm (the maintainer's choice); transparently fall back to npm when
-# pnpm is not on PATH, so contributors without pnpm can still run everything.
+# pnpm is not usable, so contributors without pnpm can still run everything.
+# "Usable" means it RUNS and is v11+ (engines.pnpm): a pnpm found on PATH is
+# not enough — asdf / mise / corepack shims resolve even when no matching pnpm
+# version is installed, and then fail on the first call. The download prompt
+# is off so a corepack shim can't block make while it parses this file.
 # Force a manager with `make <target> FORCE_PM=npm` (or pnpm) — also how the
 # fallback gets tested. Docker stays pnpm-only (it has pnpm via corepack).
 ifeq ($(FORCE_PM),npm)
@@ -23,16 +37,19 @@ ifeq ($(FORCE_PM),npm)
 else ifeq ($(FORCE_PM),pnpm)
   HAS_PNPM := yes
 else
-  HAS_PNPM := $(shell command -v pnpm >/dev/null 2>&1 && echo yes)
+  PNPM_VERSION := $(shell COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm --version </dev/null 2>/dev/null)
+  HAS_PNPM := $(shell [ "$(firstword $(subst ., ,$(PNPM_VERSION)))" -ge 11 ] 2>/dev/null && echo yes)
 endif
 
 ifeq ($(HAS_PNPM),yes)
+  PM_NAME     := pnpm
   pm_install  = pnpm install
   pm_run      = pnpm $(1)                      # run a root package.json script
   pm_rec      = pnpm -r $(1)                    # run script $(1) across all workspaces
   pm_filter   = pnpm --filter $(1) $(2)         # run script $(2) in package $(1)
   pm_filterex = pnpm --filter $(1) exec $(2)    # exec tool $(2) in package $(1)
 else
+  PM_NAME     := npm
   pm_install  = npm install
   pm_run      = npm run $(1)
   pm_rec      = npm run $(1) --workspaces --if-present
@@ -41,9 +58,15 @@ else
 endif
 # ----------------------------------------------------------------------
 
+# Silence the Node deprecation warning tsx/vite trigger on newer Node, for every process a recipe
+# starts. It lives here — not as a `NODE_OPTIONS=… cmd` prefix in package.json — because npm (and
+# pnpm) run package scripts through cmd.exe on Windows, which has no such syntax. filter-out keeps
+# nested makes (dev → concurrently → make _dev-*) from stacking duplicates.
+export NODE_OPTIONS := $(strip $(filter-out --disable-warning=DEP0205,$(NODE_OPTIONS)) --disable-warning=DEP0205)
+
 # Load local .env so the TF_VAR_* provisioning credentials (kept there) reach the
 # checks and recipes — and the import/destroy scripts inherit them. The PRODUCTION app
-# tokens are exported too so `pnpm dev` can launch the side-by-side production instance.
+# tokens are exported too so `make dev` can launch the side-by-side production instance.
 -include .env
 export TF_VAR_unleash_base_url TF_VAR_unleash_token TF_VAR_facilitator_emails \
        VITE_UNLEASH_CLIENT_KEY_PRODUCTION UNLEASH_API_TOKEN_PRODUCTION
@@ -63,12 +86,13 @@ REFRESH ?= true
 USER_BATCH_SIZE  ?= 20
 USER_BATCH_PAUSE ?= 60
 
-.PHONY: help workshop-pre-check workshop-configure workshop-provision workshop-final-check setup install dev clean \
+.PHONY: help workshop-pre-check workshop-configure workshop-provision workshop-teardown workshop-final-check \
+        setup install dev clean \
         docker-pull docker-up docker-down docker-image docker-logs \
         unleash-create unleash-destroy \
         master-kill-switch master-kill-switch-web \
         maint-fmt maint-lint-infra maint-lint maint-build maint-test maint-check \
-        ensure-env ensure-tf-env shared-build \
+        ensure-toolchain ensure-env ensure-tf-env shared-build \
         _dev-web _dev-api _dev-web-prod _dev-api-prod _dev-paybro _dev-dashed
 
 # =====================================================================
@@ -103,6 +127,7 @@ help:
 	@echo "  make unleash-create   Provision project/users/envs + import flags"
 	@echo "  make unleash-destroy  Archive flags and tear everything down"
 	@echo "  make workshop-provision  Self-paced: create one project + flags + tokens (run by workshop-configure)"
+	@echo "  make workshop-teardown   Self-paced: remove what workshop-provision created (keeps the project)"
 	@echo "  (provisioning needs terraform + TF_VAR_unleash_base_url / TF_VAR_unleash_token in .env)"
 	@echo ""
 	@echo "Apps (development):  web :8080  ·  api :8081 (/health,/metrics)"
@@ -134,6 +159,12 @@ workshop-configure: ensure-env
 workshop-provision: install
 	@UNLEASH_SELF_PACED=1 $(call pm_filter,unleash-provisioner,provision)
 
+# 2c) Self-paced only: the reverse of workshop-provision — archive the flags and delete the release
+#     template, segment and context fields it created (plus the instance-wide example template and
+#     the remote MCP toggle). The project itself is left alone. Reads the same variables.
+workshop-teardown: install
+	@UNLEASH_SELF_PACED=1 $(call pm_filter,unleash-provisioner,destroy)
+
 # 4) Verify readiness and print your project, your flags URL, and the MCP export commands.
 workshop-final-check:
 	@bash support/scripts/workshop-final-check.sh
@@ -141,7 +172,7 @@ workshop-final-check:
 # =====================================================================
 # Attendee · localhost (default, no prefix)
 # =====================================================================
-install:
+install: ensure-toolchain
 	$(call pm_install)
 
 # Run the three apps on the host. No lint gate — keep it fast for attendees.
@@ -277,6 +308,12 @@ maint-check: maint-build
 # =====================================================================
 # Helpers (used as prerequisites)
 # =====================================================================
+# Verify Node.js + the chosen package manager can actually run here (and catch WSL borrowing the
+# Windows Node.js) before `install` tries. The pnpm-or-npm decision stays above; the script only
+# reports it and explains a fallback.
+ensure-toolchain:
+	@bash support/scripts/check-toolchain.sh "$(PM_NAME)" "$(PNPM_VERSION)"
+
 ensure-env:
 	@test -f .env || { cp .env.example .env && echo "Created .env from .env.example"; }
 

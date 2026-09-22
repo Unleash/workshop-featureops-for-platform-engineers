@@ -30,7 +30,9 @@ const yamlString = value => JSON.stringify(String(value));
 function renderComponent(project) {
   const title = project.name || project.id;
   const description = project.description
-    ? `Unleash project ${yamlString(project.id)} — ${yamlString(project.description)}`
+    ? `Unleash project ${yamlString(project.id)} — ${yamlString(
+        project.description,
+      )}`
     : `Unleash project ${yamlString(project.id)}`;
   return `---
 apiVersion: backstage.io/v1alpha1
@@ -97,9 +99,9 @@ async function main() {
   const body = projects.map(renderComponent).join('');
   await write(body);
   console.log(
-    `[generate-catalog] Wrote ${projects.length} project component(s): ${projects
-      .map(p => p.id)
-      .join(', ')}`,
+    `[generate-catalog] Wrote ${
+      projects.length
+    } project component(s): ${projects.map(p => p.id).join(', ')}`,
   );
 }
 

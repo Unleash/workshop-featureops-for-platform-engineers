@@ -14,7 +14,12 @@ services:
       - .env
     healthcheck:
       test:
-        ['CMD', 'curl', '-fsS', 'http://localhost:7007/.backstage/health/v1/liveness']
+        [
+          'CMD',
+          'curl',
+          '-fsS',
+          'http://localhost:7007/.backstage/health/v1/liveness',
+        ]
       interval: 15s
       timeout: 5s
       retries: 10

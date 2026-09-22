@@ -27,7 +27,7 @@
     "typecheck": "pnpm -r typecheck",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
-    "dev": "NODE_OPTIONS=--disable-warning=DEP0205 concurrently -k -n web-dev,api-dev,web-prod,api-prod,paybro,dashed -c blue,green,cyan,magenta,gray,yellow \"make _dev-web\" \"make _dev-api\" \"make _dev-web-prod\" \"make _dev-api-prod\" \"make _dev-paybro\" \"make _dev-dashed\""
+    "dev": "concurrently -k -n web-dev,api-dev,web-prod,api-prod,paybro,dashed -c blue,green,cyan,magenta,gray,yellow \"make _dev-web\" \"make _dev-api\" \"make _dev-web-prod\" \"make _dev-api-prod\" \"make _dev-paybro\" \"make _dev-dashed\""
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",

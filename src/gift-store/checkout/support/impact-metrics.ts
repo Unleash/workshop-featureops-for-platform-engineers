@@ -81,9 +81,6 @@ export interface ImpactMetrics {
 }
 
 const increment = (name: string): void => {
-  // The SDK marks only `incrementCounter`'s optional `flagContext` parameter as deprecated —
-  // we never pass it, and the counter API itself is current — so this notice is a false alarm.
-  // eslint-disable-next-line @typescript-eslint/no-deprecated
   unleash?.impactMetrics.incrementCounter(name);
 };
 
