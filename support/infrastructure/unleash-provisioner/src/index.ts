@@ -4,10 +4,12 @@
  *   1. project-scoped context fields (p001_region, p001_email — unprefixed when self-paced)
  *   2. the workshop's feature flags (+ strategies, variants, per-env enabled state)
  *   3. the internal-users segment (references the email context field)
- *   4. per-flag Layer tags (the global Layer tag type is created once)
+ *   4. the "Project Golden Release Rollout" — the project-level release template step 6 applies
+ *      (references the segment + the email context field; needs Unleash 8.2+)
+ *   5. per-flag Layer tags (the global Layer tag type is created once)
  *
  * Plus instance-global actions done once (not per project): the Layer tag type, the "Golden Release
- * Rollout" (the org-wide rollout policy of Segment 6), and the remote MCP server.
+ * Rollout" (the org-wide example template, and step 6's fallback before 8.2), and the remote MCP server.
  *
  * Two flows share this code:
  *   • FACILITATED (default) — run after `terraform apply`, which owns the projects, users, roles and
@@ -33,7 +35,7 @@ import { createFlags } from './flags/flags';
 import { createSegments } from './setup/segments';
 import { createProjectTokens } from './setup/api-tokens';
 import { applyTags, createTagType } from './flags/tags';
-import { createReleaseTemplate } from './setup/release-templates';
+import { createProjectReleaseTemplate, createReleaseTemplate } from './setup/release-templates';
 import { archiveDefaultProject } from './setup/default-project';
 import { enableRemoteMcp } from './setup/remote-mcp';
 import { createMasterKillSwitchSignal } from './setup/master-kill-switch-signal';
@@ -84,6 +86,7 @@ const run = async (): Promise<void> => {
       await createContextFields(project);
       await withChangeRequestsDisabled(project, () => createFlags(project));
       await createSegments(project);
+      await createProjectReleaseTemplate(project);
       if (signal && actorId !== null) {
         await createMasterKillSwitchAction(project, signal.endpointId, actorId);
       }

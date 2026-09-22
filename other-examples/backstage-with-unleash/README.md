@@ -43,7 +43,7 @@ terraform -chdir=support/infrastructure/terraform output -raw backstage_unleash_
 ## Configuration
 
 | Setting             | Where                       | Notes                                                                                                                                                        |
-|---------------------|-----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `UNLEASH_URL`       | `.env` → `unleash.url`      | Instance base URL **without** `/api`.                                                                                                                        |
 | `UNLEASH_API_TOKEN` | `.env` → `unleash.apiToken` | Service-account token (sent verbatim, no `Bearer`).                                                                                                          |
 | Catalog locations   | `app-config.docker.yaml`    | Owner group + the generated projects file.                                                                                                                   |

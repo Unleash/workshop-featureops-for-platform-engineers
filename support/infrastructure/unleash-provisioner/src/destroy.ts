@@ -3,8 +3,9 @@
  * from EVERY project in UNLEASH_PROJECTS, so `terraform destroy` can then drop the projects:
  *   1. archive the feature flags (a change-request guard, if the attendee enabled one, is lifted
  *      and then restored) — per project
- *   2. delete the internal-users segment (before the email context field it references)
- *   3. delete the project-scoped context fields (region, email)
+ *   2. delete the project release template (before the segment + email context field it references)
+ *   3. delete the internal-users segment (before the email context field it references)
+ *   4. delete the project-scoped context fields (region, email)
  * then undo the instance-global actions once: delete the Layer tag type, the Golden Release
  * Rollout, and the master-kill-switch signal endpoint (its per-project Actions are removed in the
  * loop), and revive the built-in "Default" project.
@@ -28,7 +29,7 @@ import { archiveFlags } from './flags/flags';
 import { deleteSegments } from './setup/segments';
 import { deleteContextFields } from './setup/context-fields';
 import { deleteTagType } from './flags/tags';
-import { deleteReleaseTemplate } from './setup/release-templates';
+import { deleteProjectReleaseTemplate, deleteReleaseTemplate } from './setup/release-templates';
 import { reviveDefaultProject } from './setup/default-project';
 import { disableRemoteMcp } from './setup/remote-mcp';
 import { deleteMasterKillSwitchSignal } from './setup/master-kill-switch-signal';
@@ -57,6 +58,7 @@ const run = async (): Promise<void> => {
         await deleteMasterKillSwitchAction(project);
       }
       await withChangeRequestsDisabled(project, () => archiveFlags(project));
+      await deleteProjectReleaseTemplate(project);
       await deleteSegments(project);
       await deleteContextFields(project);
     }

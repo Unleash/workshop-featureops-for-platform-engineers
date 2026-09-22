@@ -9,7 +9,7 @@
     "assets"
   ],
   "scripts": {
-    "dev": "NODE_OPTIONS=--disable-warning=DEP0205 tsx watch --env-file=../../../.env index.ts",
+    "dev": "tsx watch --env-file=../../../.env index.ts",
     "build": "tsup",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",

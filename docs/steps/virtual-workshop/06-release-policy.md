@@ -1,27 +1,28 @@
 # Step 6: Author the release policy
 
-Now it's time to move from "_a flag exists_" to "_every change inherits a policy_". Let's apply a release template so your flag rolls out in consistent, staged milestones instead of a hand-crafted strategy. At the same time, you will adjust the prepared template to present that it is flexible enough to reflect project-specific requirements.
+Now it's time to move from "_a flag exists_" to "_every change inherits a policy_". Let's apply a release template so your flag rolls out in consistent, staged milestones instead of a hand-crafted strategy. The platform has already prepared one for your project: it targets your project's own context field and segment, so you apply it as is.
 
 ## Steps
 
-- [ ] Locate your project-specific segment in the Unleash UI (a segment named `<prefix>internal-users`).
-- [ ] Apply the **Golden Release Rollout** template (provisioned for the whole instance) to the flag.
-  - It adds four milestones: **Canary (single user) → Internal users only → 50% of the whole userbase → Generally available** for everyone.
-- [ ] Adjust the **first two** milestones for your project: set the canary user via your `<prefix>email` project-specific context field, and the same to target internal users - either by a rule `<prefix>email` ending `@getunleash.io`, or by a segment you have located in the previous step.
-  - The last two milestones are generic — leave them as is.
-- [ ] Enable the flag in **development**, adjust the email accordingly in the DevTool sidebar and advance to the first milestone.
-- [ ] Refresh the _development_ storefront as a targeted vs. an untargeted user and watch the feature appear for one and not the other (evaluated in-SDK).
-  - Actual values for the contextual fields can be adjusted by the _Development Toolbar_ visible on the left side (dark background).
+- [ ] Open your project's **Settings → Release templates** in the Unleash UI and find the **Project Golden Release Rollout** template.
+  - It has four milestones: **Canary (single user) → Internal users only → 50% of the whole userbase → Generally available** for everyone.
+  - The first two already point at your project: the canary is `canary@getunleash.io`, matched by your `<prefix>email` context field, and the internal users are your `<prefix>internal-users` segment (`<prefix>email` ending with `@getunleash.io`).
+- [ ] Apply the **Project Golden Release Rollout** template to your flag in the **development** environment.
+- [ ] Enable the flag in **development** and start the first milestone.
+- [ ] In the _Development Toolbar_ on the left side (dark background), make the email `canary@getunleash.io` — type `canary` before the `@`, and switch the domain to `@getunleash.io`. Refresh the _development_ storefront, then compare with any other email: the feature appears for one and not the other (evaluated in-SDK).
+- [ ] Advance to **Internal users only**, and check that any `@getunleash.io` email now sees the feature, while an `@example.org` one still does not.
 
 ## Outcome / success
 
-Your flag is running a **multi-milestone rollout** driven by the shared template and adjusted to your project-specific needs. You can see it target the canary/internal user first and stay off for everyone else.
+Your flag is running a **multi-milestone rollout** driven by your project's template. You can see it target the canary user first, then internal users, and stay off for everyone else.
 
-And you understand the contrast: the platform authored the rollout shape once (as code), and every future change in the project can inherit it. That's the paving.
+And you understand the contrast: the platform authored the rollout shape once (as code), wired to each project's own targeting, and every future change in the project can inherit it. That's the paving.
 
 ## Tips and Tricks
 
-> Release templates are defined programmatically **globally**, for the whole _Unleash_ instance. However, after applying you are free to adjust the targeting criteria for the existing milestones structure defined as a paved path.
+> There are two kinds of release templates. **Project-level** ones (like yours) live in one project and may use its segments and context fields. **Global** ones are shared by the whole _Unleash_ instance — the provisioned **Golden Release Rollout** is an example — and so can only use instance-wide concepts (its first two milestones target the built-in `userId`). Compare the two in the template picker.
+
+> Project-level release templates need _Unleash_ 8.2 or newer. Every cloud-hosted instance — the workshop's and a free trial alike — already runs 8.2 or newer; only a self-hosted instance can be older. On such an instance, apply the global **Golden Release Rollout** instead and adjust its first two milestones yourself: set the canary user via your `<prefix>email` context field, and target internal users either by a rule on `<prefix>email` ending with `@getunleash.io` or by your `<prefix>internal-users` segment.
 
 ## Next step
 

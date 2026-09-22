@@ -35,6 +35,7 @@ CLI:
 ```bash
 make master-kill-switch
 # or: pnpm --filter master-kill-switch fire ["optional reason"]
+# or, without pnpm: npm run fire -w master-kill-switch -- ["optional reason"]
 ```
 
 Button webpage (token stays server-side):

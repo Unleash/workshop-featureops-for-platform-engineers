@@ -6,7 +6,9 @@ Get to a known-good state: your `.env` is filled, the sample app is running loca
 
 - [ ] Clone the repository.
 - [ ] Inside the repository, run `make workshop-pre-check`.
-  - It installs dependencies and checks your machine is ready: the tools we need (`curl`, `jq`), that the app ports are free (`8080`/`8081`/`8090`/`8091`/`8400`/`8401`), and that no stray Unleash variables are lurking in your shell.
+  - It first checks Node.js (v22 or newer) and picks your package manager — `pnpm`, or `npm` when `pnpm` is missing or can't run — and prints which one and why.
+  - Then it installs dependencies and checks your machine is ready: the tools we need (`curl`, `jq`), that the app ports are free (`8080`/`8081`/`8090`/`8091`/`8400`/`8401`), and that no stray Unleash variables are lurking in your shell.
+  - On Windows, run it from **WSL2** (with Node.js installed inside WSL) or **Git Bash** — see [README → Dependencies](../../../README.md#dependencies).
 
 ## At the workshop
 
@@ -32,7 +34,7 @@ Get to a known-good state: your `.env` is filled, the sample app is running loca
 - application links (for _development_ and _production_ environments)
 - ready-to-copy `export` commands for the MCP server (you'll use those in the next step).
 
-The app boots, your project and its `development` / `production` environments exist, the **remote MCP server is enabled** (checked for you — you'll connect to it in the next step), and the store loads in the browser.
+The app boots, your project and its `development` / `production` environments exist, the **remote MCP server is enabled** (checked for you — you'll connect to it in the next step), your project's release template is in place (you'll apply it in Step 6), and the store loads in the browser.
 
 You're now at the same known-good starting line as everyone else, ready to connect your AI assistant in the 4th step.
 

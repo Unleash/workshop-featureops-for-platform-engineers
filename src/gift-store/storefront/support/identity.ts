@@ -6,8 +6,8 @@
  * - `userId`  — a human-typeable guest "visitor id" (e.g. `swift-otter-2481`), persisted in
  *               localStorage so it survives refreshes. Editable/regenerable in the DevTool.
  * - `SESSION_ID` — a fresh UUID per page load (not persisted); shown in the Unleash Toolbar.
- * - region    — pinned to `AMER` here; the full legal set lives in Terraform and the Toolbar
- *               can override it live.
+ * - region    — pinned to `US` here; the full legal set lives on the `<prefix>region` context
+ *               field (created by the Unleash provisioner) and the Toolbar can override it live.
  */
 import { useCallback, useState } from 'react';
 
@@ -15,7 +15,7 @@ export interface UserProfile {
   userId: string;
 }
 
-/** Region context values — mirrors the Unleash context field's legal values (Terraform). */
+/** Region context values — mirrors the Unleash context field's legal values (the provisioner). */
 export const REGIONS = ['AMER', 'APAC', 'EEA', 'EU', 'US'] as const;
 export type Region = (typeof REGIONS)[number];
 

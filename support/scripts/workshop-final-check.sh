@@ -4,15 +4,16 @@
 #
 # Confirms an attendee is at a known-good state once `make workshop-configure` has filled .env and
 # the app is running, and prints a banner with everything they need for the rest of the workshop.
-# Five checks:
+# Six checks:
 #   1. an AI assistant CLI is on PATH
 #   2. the Unleash PAT (UNLEASH_PAT) authenticates against your instance (UNLEASH_URL)
 #   3. the sample app boots (checkout API + storefront respond)
 #   4. your project + development/production environments exist
 #   5. the remote Unleash MCP server is enabled (you wire an assistant to it in step 4)
+#   6. your project's release template exists (you apply it in step 6)
 #
 # Only a non-booting app, a rejected token, or a demonstrably disabled MCP server fails the script;
-# a missing assistant CLI is a warning. curl + jq are verified earlier by `make workshop-pre-check`,
+# a missing assistant CLI or release template is a warning. curl + jq are verified earlier by `make workshop-pre-check`,
 # so they are assumed here.
 #
 # Usage:  bash support/scripts/workshop-final-check.sh   (or: make workshop-final-check)
@@ -109,7 +110,7 @@ printf '%s───────────────────────�
 
 # --- 1. assistant CLI -------------------------------------------------------
 printf '\n%s1) AI assistant CLI%s\n' "$BOLD" "$RESET"
-ASSISTANTS="claude codex cursor-agent cursor opencode copilot kiro gemini"
+ASSISTANTS="claude codex cursor-agent cursor opencode copilot kiro agy"
 found_assistant=""
 for cli in $ASSISTANTS; do
   if command -v "$cli" >/dev/null 2>&1; then
@@ -213,6 +214,44 @@ else
       ;;
     *)
       warn "Remote MCP settings unavailable (HTTP ${mcp_status}) — an Enterprise feature, or the instance is unreachable."
+      ;;
+  esac
+fi
+
+# --- 6. project release template ---------------------------------------------
+# Step 6 applies your project's own release template — a project-level template (Unleash 8.2+) that
+# the provisioner creates next to your segment and context fields. It keeps its name in every
+# project; keep it in step with PROJECT_TEMPLATE_NAME in the provisioner's release-templates.ts.
+# Every cloud-hosted instance (a free trial included) runs 8.2+; only a self-hosted one can be older,
+# and then it has no such endpoint (404): step 6 falls back to the global Golden Release Rollout, so
+# a missing template is a warning, never a failure.
+RELEASE_TEMPLATE="Project Golden Release Rollout"
+printf '\n%s6) Project release template%s\n' "$BOLD" "$RESET"
+if [ -z "$ADMIN_URL" ] || [ -z "$ADMIN_TOKEN" ]; then
+  bad "Skipped — needs UNLEASH_URL / UNLEASH_PAT (see check 2)."
+else
+  template_response="$(curl -s -w '\n%{http_code}' --max-time 8 -H "Authorization: $ADMIN_TOKEN" \
+    "${ADMIN_URL}/api/admin/projects/${PROJECT_ID}/release-templates" 2>/dev/null || printf '\n000')"
+  template_status="$(printf '%s' "$template_response" | tail -n1)"
+  template_body="$(printf '%s' "$template_response" | sed '$d')"
+
+  case "$template_status" in
+    200)
+      if printf '%s' "$template_body" | jq -e --arg name "$RELEASE_TEMPLATE" \
+        '(if type == "array" then . else (.templates // []) end) | any(.[]; .name == $name)' >/dev/null 2>&1; then
+        ok "Release template '${RELEASE_TEMPLATE}' is present on ${PROJECT_ID}."
+      else
+        warn "Release template '${RELEASE_TEMPLATE}' is missing on ${PROJECT_ID}."
+        warn "Facilitated: ask a facilitator. Self-paced: see docs/steps/self-paced/manual-setup.md."
+      fi
+      ;;
+    404)
+      warn "Project-level release templates are not available — they need Unleash 8.2+, which every"
+      warn "cloud-hosted instance has, so this must be an older self-hosted one."
+      warn "Step 6 falls back to the global Golden Release Rollout template."
+      ;;
+    *)
+      warn "Couldn't list the release templates of ${PROJECT_ID} (HTTP ${template_status})."
       ;;
   esac
 fi

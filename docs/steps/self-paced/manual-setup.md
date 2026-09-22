@@ -57,16 +57,26 @@ The provisioner would also have created these. Nothing in the workshop breaks wi
 
 - **Context fields** `region` and `email` (project-scoped) — [Step 6](../virtual-workshop/06-release-policy.md) targets a canary user with `email`.
 - **A segment** `internal-users`, constrained to `email` ending with `@getunleash.io` — also Step 6.
+- **The "Project Golden Release Rollout" release template** (project-level, _Unleash_ 8.2+ — every cloud-hosted instance, a free trial included, already has it) — [Step 6](../virtual-workshop/06-release-policy.md) applies it to a flag. See [below](#the-project-release-template-by-hand) to create it by hand.
+- **The "Golden Release Rollout" release template** (instance-level) — the instance-wide example, and Step 6's fallback on a self-hosted instance older than 8.2.
 - **A `Layer` tag type** and per-flag tags describing where each flag is evaluated.
-- **The "Golden Release Rollout" release template** (instance-level) — [Step 6](../virtual-workshop/06-release-policy.md) applies it to a flag.
 
 Rather than click all of that, you can let the provisioner do just this part against your already-created project:
 
 ```bash
 UNLEASH_BASE_URL="https://<region>.app.unleash-hosted.com/<instance>" \
 UNLEASH_ADMIN_TOKEN="<your-PAT>" \
-UNLEASH_SELF_PACED=1 UNLEASH_PROJECTS="<your-project-id>" \
-  pnpm --dir support/infrastructure/unleash-provisioner provision
+UNLEASH_PROJECTS="<your-project-id>" \
+  make workshop-provision
 ```
 
-It is idempotent: the project and flags you already made are reused, not duplicated.
+It is idempotent: the project and flags you already made are reused, not duplicated. A project the provisioner already finished is skipped as a whole — to add something new to it (such as the project release template), prefix the command with `UNLEASH_FORCE_PROVISION=1`.
+
+### The project release template by hand
+
+It needs the `email` context field and the `internal-users` segment above. In your project, open **Settings → Release templates → New template**, name it `Project Golden Release Rollout`, and add four milestones, each with one strategy:
+
+1. **Canary deployment (single user)** — _Standard_ strategy with a constraint: `email` **is one of** `canary@getunleash.io`.
+2. **Internal users only** — _Standard_ strategy with the `internal-users` segment.
+3. **50% of all users** — _Gradual rollout_ at 50%, default stickiness.
+4. **Generally available** — _Gradual rollout_ at 100%, default stickiness.

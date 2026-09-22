@@ -1,0 +1,18 @@
+# Dependabot configuration.
+#
+# The Backstage sample (`other-examples/backstage-with-unleash`) is pinned to an old Backstage
+# release on purpose, and it must stay on React Router 6: Dependabot once bumped `react-router` to
+# 8.x there, a second router copy next to `react-router-dom` 6, which broke the app's tests. A
+# sample is not worth that churn, so every dependency in that folder is ignored and version
+# updates are off (limit 0). Upgrade it by hand, together with Backstage itself.
+#
+# The rest of the repository keeps GitHub's default behavior (security updates only).
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/other-examples/backstage-with-unleash'
+    schedule:
+      interval: 'monthly'
+    open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: '*'
