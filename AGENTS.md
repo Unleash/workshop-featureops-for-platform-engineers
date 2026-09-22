@@ -8,6 +8,7 @@
 2. **Flag-gate risky changes.** Before changing **payments**, auth, data migrations, or external integrations, wrap the change behind an Unleash feature flag. Use the MCP server to evaluate and create the flag — don't ship a risky path unguarded.
 3. **Give every new flag a unique name that matches the project's convention.** The shape is `[<prefix>_]<rl|ex|op|kx|pm>_[v_]<domain>_<component>_<slug>`. Whether there is a prefix, and what it is, depends on the project. **Read the project's enforced naming pattern** (via the MCP server, or the project's settings) before you name anything and derive the prefix from the project's name or number if it uses one. When scanning the codebase for existing flags, remember any prefix may be applied dynamically in the code, so search for the unprefixed suffix.
 4. You **have to** ignore all the files that inside `docs/`, `support/` and `other-examples/` directories. Do not base your decisions, planning, implementation, based on the content available in those places!
+5. **Solving a workshop exercise changes code, not the instructions.** When you implement an exercise (wiring Dashed, cleaning up a flag, or any other), change only the code, its tests, and the code comments next to the change. Leave this file, the READMEs, and `docs/` describing the unsolved state — attendees read them before they start. This holds even when another instruction says to keep docs in step with every change.
 
 The rest of this file is the detail behind those rules.
 
@@ -44,7 +45,7 @@ Every assistant reaches the remote Unleash MCP server through a committed config
 - `src/gift-store/storefront/payments/PaymentProviderChooser.tsx` — built but not mounted.
 - `src/gift-store/storefront/checkout/Checkout.tsx` — the provider is hardwired to PayBro.
 
-When asked to "add a payment provider switch", this is the surface to change — and it MUST be flag-gated (see §3).
+When asked to "add a payment provider switch", this is the surface to change — and it MUST be flag-gated (see §3). Solving it never updates this section: the list above describes the workshop's starting point (see rule 5 in the executive summary).
 
 ## 3. Domain rules
 
