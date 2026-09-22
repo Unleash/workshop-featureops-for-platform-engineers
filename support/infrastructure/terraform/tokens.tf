@@ -1,35 +1,12 @@
-# The application SDK tokens, created as code and scoped to the team's project
-# ONLY (no wildcard). `make unleash-create` reads the outputs and writes them
-# into the app's .env so the browser and backend can authenticate to Unleash.
+# The application SDK tokens (one frontend + one client token per environment, per project) are
+# deliberately not managed here.
 #
-# One frontend + one client token PER environment, so a development and a production
-# app instance can run side by side, each scoped to its own environment.
-
-locals {
-  # Environments we mint app tokens for. Both are enabled on every project (see main.tf).
-  app_token_environments = ["development", "production"]
-
-  # One token target per (user number, environment), keyed "NNN-environment".
-  token_targets = {
-    for pair in setproduct(local.numbers, local.app_token_environments) :
-    "${pair[0]}-${pair[1]}" => { number = pair[0], environment = pair[1] }
-  }
-}
-
-resource "unleash_api_token" "frontend" {
-  for_each = local.token_targets
-
-  token_name  = "project-${each.value.number}-web-${each.value.environment}"
-  type        = "frontend"
-  projects    = [unleash_project.team[each.value.number].id]
-  environment = each.value.environment
-}
-
-resource "unleash_api_token" "backend" {
-  for_each = local.token_targets
-
-  token_name  = "project-${each.value.number}-api-${each.value.environment}"
-  type        = "client"
-  projects    = [unleash_project.team[each.value.number].id]
-  environment = each.value.environment
-}
+# Since Unleash 8.2, API tokens are "secure": a token's secret is returned only by the call that
+# creates it — every list, in the API and the UI alike, shows a short id instead, which the SDK
+# endpoints reject with 401. A token Terraform creates ahead of time is therefore one the attendee
+# can never read, let alone copy into their .env.
+#
+# Instead, `make workshop-configure` creates the four tokens as the attendee (Owner of their
+# project, so it holds CREATE_PROJECT_API_TOKEN) and writes each secret straight from the create
+# response into .env. `make unleash-destroy` deletes them again (unleash-provisioner, destroy),
+# before `terraform destroy` removes the project.

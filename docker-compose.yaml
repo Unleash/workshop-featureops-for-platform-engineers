@@ -48,7 +48,7 @@ services:
       PUBLIC_API_URL: http://api:8081
       PAYBRO_URL: http://paybro:8400
       PAYBRO_WEBHOOK_SECRET: paybro-dev-webhook-secret
-      # Cloud Unleash — supplied via .env (UNLEASH_API_TOKEN is minted by Terraform).
+      # Cloud Unleash — supplied via .env (UNLEASH_API_TOKEN is created by make workshop-configure).
       UNLEASH_URL: ${UNLEASH_URL:-}
       UNLEASH_API_TOKEN: ${UNLEASH_API_TOKEN:-}
       # Attendee's project. No default: run `make workshop-configure` (it detects the project you own).
@@ -94,7 +94,7 @@ services:
       PUBLIC_API_URL: http://api-prod:8091
       PAYBRO_URL: http://paybro:8400
       PAYBRO_WEBHOOK_SECRET: paybro-dev-webhook-secret
-      # Cloud Unleash — production token supplied via .env (minted by Terraform).
+      # Cloud Unleash — production token supplied via .env (created by make workshop-configure).
       UNLEASH_URL: ${UNLEASH_URL:-}
       UNLEASH_API_TOKEN: ${UNLEASH_API_TOKEN_PRODUCTION:-}
       # Same project as the development stack (the project is environment-independent).

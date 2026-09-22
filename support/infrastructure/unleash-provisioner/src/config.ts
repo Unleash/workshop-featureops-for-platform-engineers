@@ -78,9 +78,9 @@ export const projectPrefix = (project: string): string => {
 
 /**
  * Self-paced mode: the attendee's own instance, provisioned by `make workshop-provision` instead of
- * Terraform. Creates the project and its SDK tokens (Terraform's job in the facilitated flow), and
- * skips everything that assumes Terraform ran or that we own the whole instance: archiving the
- * built-in "Default" project, and the master kill switch (which needs a Terraform service account).
+ * Terraform. Creates the project (Terraform's job in the facilitated flow), and skips everything
+ * that assumes Terraform ran or that we own the whole instance: archiving the built-in "Default"
+ * project, and the master kill switch (which needs a Terraform service account).
  */
 export const SELF_PACED = isTruthy('UNLEASH_SELF_PACED');
 

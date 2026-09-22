@@ -17,7 +17,7 @@ Get to a known-good state: your `.env` is filled, the sample app is running loca
   - Keep it handy (and **don't lose it**) — you'll paste it in the next task below.
 - [ ] **Run `make workshop-configure`.**
   - It asks for your region and instance, asks you to paste the generated _PAT_, and then fills `.env` for you.
-    - It prefills the client / frontend / MCP URLs, your project id (auto-detected as the project you own, which it also stars for you), your flag prefix, and all four SDK tokens.
+    - It prefills the client / frontend / MCP URLs, your project id (auto-detected as the project you own, which it also stars for you), and your flag prefix, and it creates the four SDK tokens your app needs. Unleash shows a token's secret only once, when it is created, so the script writes each one into `.env` right then.
   - No need to copy-paste individual values (except the _PAT_ generated previously).
 - [ ] **Start the app** with `make dev` (or `make docker-up` - but then remember to run `make docker-down` at the end).
 - [ ] In a second terminal, run `make workshop-final-check` to verify readiness.

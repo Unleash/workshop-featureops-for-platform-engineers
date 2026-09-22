@@ -104,7 +104,7 @@ help:
 	@echo ""
 	@echo "WORKSHOP — the attendee flow, in order:"
 	@echo "  make workshop-pre-check    Install deps + check your machine is ready (do this ahead of time)"
-	@echo "  make workshop-configure    Create a PAT, then auto-fill .env (tokens, URLs, project) via the API"
+	@echo "  make workshop-configure    Create a PAT, then auto-fill .env (URLs, project) + create your SDK tokens"
 	@echo "  make dev | make docker-up  Run the app (localhost or Docker)"
 	@echo "  make workshop-final-check  Verify readiness + print your project, flags URL, and MCP exports"
 	@echo "  (make setup is an alias for make workshop-pre-check)"
@@ -125,9 +125,9 @@ help:
 	@echo "  make maint-lint       Lint app + scripts    ·  make maint-fmt    Format everything"
 	@echo "  make maint-test       Run tests             ·  make maint-build  Production build"
 	@echo "  make unleash-create   Provision project/users/envs + import flags"
-	@echo "  make unleash-destroy  Archive flags and tear everything down"
-	@echo "  make workshop-provision  Self-paced: create one project + flags + tokens (run by workshop-configure)"
-	@echo "  make workshop-teardown   Self-paced: remove what workshop-provision created (keeps the project)"
+	@echo "  make unleash-destroy  Delete flags and tear everything down"
+	@echo "  make workshop-provision  Self-paced: create one project + its flags (run by workshop-configure)"
+	@echo "  make workshop-teardown   Self-paced: delete your project and everything provisioning made"
 	@echo "  (provisioning needs terraform + TF_VAR_unleash_base_url / TF_VAR_unleash_token in .env)"
 	@echo ""
 	@echo "Apps (development):  web :8080  ·  api :8081 (/health,/metrics)"
@@ -150,20 +150,38 @@ setup: workshop-pre-check
 workshop-configure: ensure-env
 	@bash support/scripts/workshop-configure.sh
 
-# 2b) Self-paced only: create the attendee's project (enabling the instance's development +
-#     production environments on it), its flags, and its four SDK tokens — the work Terraform does
-#     in the facilitated flow. Invoked BY workshop-configure.sh once you grant it permission, which
-#     is why the pnpm/npm invocation lives here and not duplicated in the script. It reads
-#     UNLEASH_BASE_URL / UNLEASH_ADMIN_TOKEN / UNLEASH_PROJECTS / UNLEASH_PROJECT_NAME from the
-#     environment the script exports.
-workshop-provision: install
-	@UNLEASH_SELF_PACED=1 $(call pm_filter,unleash-provisioner,provision)
+# Credentials + project for the self-paced provisioner. Variables already set in the environment
+# win — that is how workshop-configure.sh calls workshop-provision — and anything missing falls back
+# to what `make workshop-configure` wrote into .env (UNLEASH_URL, UNLEASH_PAT, UNLEASH_PROJECT_ID),
+# so a returning attendee can simply run `make workshop-teardown`.
+SELF_PACED_ENV = UNLEASH_SELF_PACED=1 \
+  UNLEASH_BASE_URL="$${UNLEASH_BASE_URL:-$(UNLEASH_URL)}" \
+  UNLEASH_ADMIN_TOKEN="$${UNLEASH_ADMIN_TOKEN:-$(UNLEASH_PAT)}" \
+  UNLEASH_PROJECTS="$${UNLEASH_PROJECTS:-$(UNLEASH_PROJECT_ID)}"
 
-# 2c) Self-paced only: the reverse of workshop-provision — archive the flags and delete the release
-#     template, segment and context fields it created (plus the instance-wide example template and
-#     the remote MCP toggle). The project itself is left alone. Reads the same variables.
+# 2b) Self-paced only: create the attendee's project (enabling the instance's development +
+#     production environments on it) and its flags — the work Terraform does in the facilitated
+#     flow. The four SDK tokens are not made here: workshop-configure.sh creates them itself, in
+#     both flows, because a token's secret is readable only in its create response. Invoked BY
+#     workshop-configure.sh once you grant it permission, which is why the pnpm/npm invocation
+#     lives here and not duplicated in the script. It reads UNLEASH_BASE_URL /
+#     UNLEASH_ADMIN_TOKEN / UNLEASH_PROJECTS / UNLEASH_PROJECT_NAME from the environment the
+#     script exports.
+workshop-provision: install
+	@$(SELF_PACED_ENV) $(call pm_filter,unleash-provisioner,provision)
+
+# 2c) Self-paced only: the reverse of workshop-configure + workshop-provision — delete the project
+#     with everything in it: its flags (archived, then deleted), release template, segment, context
+#     fields, and the SDK tokens workshop-configure created — plus the instance-wide example
+#     template, and switch the remote MCP server off. Asks first. Reads the same variables.
 workshop-teardown: install
-	@UNLEASH_SELF_PACED=1 $(call pm_filter,unleash-provisioner,destroy)
+	@project="$${UNLEASH_PROJECTS:-$(UNLEASH_PROJECT_ID)}"; \
+	 [ -n "$$project" ] || { echo "No project to tear down — set UNLEASH_PROJECTS, or run 'make workshop-configure' first."; exit 1; }; \
+	 printf 'Delete the project %s with all its flags, release template, segment, context fields, and SDK tokens,\n' "$$project"; \
+	 printf 'plus the instance-wide example template, and switch the remote MCP server off? [y/N] '; \
+	 read -r answer; \
+	 case "$$answer" in [yY]|[yY][eE][sS]) ;; *) echo "Stopped — nothing was changed."; exit 0 ;; esac; \
+	 $(SELF_PACED_ENV) $(call pm_filter,unleash-provisioner,destroy)
 
 # 4) Verify readiness and print your project, your flags URL, and the MCP export commands.
 workshop-final-check:
@@ -225,7 +243,7 @@ docker-logs:
 # Maintainer · Unleash provisioning (needs Terraform + TF_VAR_*)
 # =====================================================================
 unleash-create: ensure-env ensure-tf-env
-	@echo "→ Provisioning users / project / group and minting app tokens with Terraform…"
+	@echo "→ Provisioning users / project / group with Terraform (SDK tokens come later, from make workshop-configure)…"
 	@$(MAKE) -C support/infrastructure/terraform apply PARALLELISM=$(PARALLELISM) REFRESH=$(REFRESH) \
 	        USER_BATCH_SIZE=$(USER_BATCH_SIZE) USER_BATCH_PAUSE=$(USER_BATCH_PAUSE)
 	@echo "→ Provisioning flags, context fields, segment, Layer tags, and the master kill switch (all projects)…"
@@ -242,7 +260,7 @@ unleash-destroy: ensure-env ensure-tf-env
 	   PROJECTS=""; \
 	 fi; \
 	 if [ -n "$$PROJECTS" ]; then \
-	   echo "→ Removing provisioned flags, context fields, segments, and tags so the projects can be destroyed…"; \
+	   echo "→ Removing provisioned flags, templates, segments, context fields, SDK tokens, and tags so the projects can be destroyed…"; \
 	   UNLEASH_PROJECTS="$$PROJECTS" $(call pm_filter,unleash-provisioner,destroy); \
 	 else \
 	   echo "→ No projects in Terraform state — skipping provisioner cleanup."; \
