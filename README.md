@@ -57,10 +57,10 @@ You can run the whole thing on your own, against an [Unleash](https://www.getunl
 1. Sign up for an Unleash free trial (14 days, **no credit card required**).
 2. `git clone` this repository, then run `make workshop-pre-check`.
 3. Create a _Personal Access Token_ (_PAT_) in the Unleash.
-4. Enable the _remote MCP server_ in the Unleash admin UI.
-5. Run `make workshop-configure` and follow the prompts (it asks before creating anything).
-6. In another terminal: `make dev`.
-7. Run `make workshop-final-check`, then follow the workshop steps from _[Step 4](docs/steps/virtual-workshop/04-wire-mcp.md)_ onward.
+4. Run `make workshop-configure` and follow the prompts (it asks before creating anything).
+5. In another terminal: `make dev`.
+6. Run `make workshop-final-check`, then follow the workshop steps from _[Step 4](docs/steps/virtual-workshop/04-wire-mcp.md)_ onward.
+7. When you're done: `make workshop-teardown` deletes your project and everything created for it (it asks first).
 
 The full walkthrough - including what differs from the facilitated workshop, how to use an existing Unleash instance, and how to set things up by hand - is in [the self-paced README file](docs/steps/self-paced/README.md).
 

@@ -12,12 +12,15 @@
  * Rollout" (the org-wide example template, and step 6's fallback before 8.2), and the remote MCP server.
  *
  * Two flows share this code:
- *   • FACILITATED (default) — run after `terraform apply`, which owns the projects, users, roles and
- *     SDK tokens. Also archives the built-in "Default" project and provisions the master kill switch
- *     (whose Actions need a Terraform service account).
+ *   • FACILITATED (default) — run after `terraform apply`, which owns the projects, users, and roles.
+ *     Also archives the built-in "Default" project and provisions the master kill switch (whose
+ *     Actions need a Terraform service account).
  *   • SELF-PACED (UNLEASH_SELF_PACED=1) — one attendee, one project, no Terraform. This CREATES the
- *     project and its SDK tokens, and skips both the "Default" archive (destructive on an instance we
- *     don't own) and the master kill switch (a facilitator tool with no Terraform behind it here).
+ *     project, and skips both the "Default" archive (destructive on an instance we don't own) and the
+ *     master kill switch (a facilitator tool with no Terraform behind it here).
+ *
+ * Neither flow creates the app's SDK tokens: a token's secret is readable only in its create
+ * response, so `make workshop-configure` creates them as the attendee (see setup/api-tokens.ts).
  *
  * Flag mutations on a change-request-guarded environment are wrapped so the guard is lifted, applied,
  * then restored to whatever it was — per project.
@@ -33,7 +36,6 @@ import { createContextFields } from './setup/context-fields';
 import { withChangeRequestsDisabled } from './setup/change-requests';
 import { createFlags } from './flags/flags';
 import { createSegments } from './setup/segments';
-import { createProjectTokens } from './setup/api-tokens';
 import { applyTags, createTagType } from './flags/tags';
 import { createProjectReleaseTemplate, createReleaseTemplate } from './setup/release-templates';
 import { archiveDefaultProject } from './setup/default-project';
@@ -60,15 +62,14 @@ const run = async (): Promise<void> => {
     const actorId = signal ? await resolveActorId() : null;
 
     for (const project of PROJECTS) {
-      // Self-paced: stand the project up before anything can be written into it. These three are
+      // Self-paced: stand the project up before anything can be written into it. These two are
       // idempotent and deliberately sit BEFORE the "already provisioned" skip below, so a run that
-      // died midway (project created, flags tagged, tokens not yet minted) converges on a re-run.
+      // died midway (project created, settings not yet applied) converges on a re-run.
       if (SELF_PACED) {
         if (!(await createProject(project, PROJECT_NAME))) {
           continue;
         }
         await applyProjectSettings(project);
-        await createProjectTokens(project);
       }
       if (!(await projectExists(project))) {
         console.warn(`[provision] ${project} not found — skipping project-dependent steps.`);

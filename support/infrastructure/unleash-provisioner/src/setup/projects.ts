@@ -41,6 +41,29 @@ export const projectProvisioned = async (project: string): Promise<boolean> => {
   );
 };
 
+/**
+ * Permanently delete a project — self-paced teardown only (in the facilitated flow `terraform
+ * destroy` drops the projects). Unleash refuses while any flag in it is still active, so destroy
+ * removes the flags first. Idempotent: a project that is already gone is fine.
+ */
+export const deleteProject = async (project: string): Promise<void> => {
+  const { status, data } = await unleashApi(`/projects/${project}`, { method: 'DELETE' });
+  if (status === 200 || status === 202 || status === 204) {
+    console.log(`[projects] Deleted "${project}".`);
+  } else if (status === 404) {
+    console.log(`[projects] "${project}" already gone.`);
+  } else {
+    const message =
+      typeof data === 'object' &&
+      data !== null &&
+      'message' in data &&
+      typeof data.message === 'string'
+        ? `: ${data.message}`
+        : '';
+    console.warn(`[projects] Could not delete "${project}" (HTTP ${status.toString()}${message}).`);
+  }
+};
+
 // --- Self-paced project creation (Terraform's job in the facilitated flow) ------------------------
 
 interface InstanceEnvironment {

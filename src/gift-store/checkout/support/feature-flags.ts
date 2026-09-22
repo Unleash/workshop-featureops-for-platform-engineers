@@ -54,7 +54,7 @@ let unleash: Unleash | undefined;
 export const startFeatureFlags = async (config: Config, log: FastifyBaseLogger): Promise<void> => {
   if (!config.unleashApiToken) {
     log.warn(
-      'UNLEASH_API_TOKEN is empty — feature flags default to OFF. Run `make infra-provision` first.',
+      'UNLEASH_API_TOKEN is empty — feature flags default to OFF. Run `make workshop-configure` first.',
     );
     return;
   }

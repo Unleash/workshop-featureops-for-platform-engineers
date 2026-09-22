@@ -151,13 +151,58 @@ export const createFlags = async (project: string): Promise<void> => {
   }
 };
 
-export const archiveFlags = async (project: string): Promise<void> => {
-  console.log(`[flags] ${project}: archiving feature flags ...`);
-  for (const flag of FLAGS) {
-    const name = flagName(project, flag.suffix);
-    const { status } = await unleashApi(`/projects/${project}/features/${name}`, {
-      method: 'DELETE',
-    });
-    console.log(`[flags] ${project}: archived "${name}" (HTTP ${status.toString()}).`);
+/** Names of the project's flags: the active ones, or (archived = true) the ones in its archive. */
+const projectFlagNames = async (project: string, archived: boolean): Promise<string[]> => {
+  const query = `project=IS:${encodeURIComponent(project)}&archived=IS:${archived.toString()}&limit=1000`;
+  const { status, data } = await unleashApi<{ features?: { name: string }[] }>(
+    `/search/features?${query}`,
+  );
+  if (status !== 200) {
+    console.warn(`[flags] ${project}: could not list flags (HTTP ${status.toString()}).`);
+    return [];
   }
+  return (data.features ?? []).map((feature) => feature.name);
+};
+
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Remove every flag from the project, in the two steps Unleash requires: archive the active ones —
+ * the workshop's own and any the attendee created during the workshop (step 5) — then delete them
+ * from the archive for good. Archiving alone keeps the names taken (re-provisioning could not
+ * create them again) and blocks deleting the project.
+ */
+export const deleteFlags = async (project: string): Promise<void> => {
+  const active = await projectFlagNames(project, false);
+  if (active.length > 0) {
+    const { status } = await unleashApi(`/projects/${project}/archive`, {
+      method: 'POST',
+      body: JSON.stringify({ features: active }),
+    });
+    console.log(
+      `[flags] ${project}: archived ${active.length.toString()} flag(s) (HTTP ${status.toString()}).`,
+    );
+  }
+
+  // The archive call answers 202 — give it a moment to land before listing the archive.
+  let archived = await projectFlagNames(project, true);
+  for (
+    let attempt = 0;
+    attempt < 5 && !active.every((name) => archived.includes(name));
+    attempt++
+  ) {
+    await sleep(1000);
+    archived = await projectFlagNames(project, true);
+  }
+  if (archived.length === 0) {
+    console.log(`[flags] ${project}: no flags to delete.`);
+    return;
+  }
+  const { status } = await unleashApi(`/projects/${project}/delete`, {
+    method: 'POST',
+    body: JSON.stringify({ features: archived }),
+  });
+  console.log(
+    `[flags] ${project}: deleted ${archived.length.toString()} archived flag(s) (HTTP ${status.toString()}).`,
+  );
 };

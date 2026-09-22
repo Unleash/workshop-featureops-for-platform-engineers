@@ -9,11 +9,11 @@ Once you're set up, you follow the same handouts as the virtual workshop, from S
 1. **Sign up for an [Unleash free trial](https://www.getunleash.io)** (14 days, **no credit card**). You'll be the instance's admin, which is what the next steps need.
 2. **Clone this repository** and run `make workshop-pre-check`. It checks Node.js and picks your package manager (`pnpm`, or `npm` as the fallback), installs dependencies, and checks your machine: the tools we need (`curl`, `jq`), free app ports, and no stray Unleash variables in your shell. On Windows, run it from WSL2 or Git Bash ([README → Dependencies](../../../README.md#dependencies)).
 3. **Create a Personal Access Token (PAT).** In the Unleash UI, open `https://<region>.app.unleash-hosted.com/<instance>/profile/personal-api-tokens` and create a token with an expiry that covers your session. On a fresh trial, you're an Admin, so it will carry the permissions the next steps need. Keep it handy.
-4. **Enable the remote MCP server** in the admin UI (`.../admin/mcp`). It is off by default, and your AI assistant connects to it in Step 4 of the workshop proper.
-5. **Run `make workshop-configure`.** It asks for your region and instance, takes the PAT, then looks for a project you own. On a fresh trial, there isn't one, so it will **ask your permission** to create a project, its feature flags, and four SDK tokens. Say yes, and it provisions them and fills `.env` for you.
+4. **Run `make workshop-configure`.** It asks for your region and instance, takes the PAT, then looks for a project you own. On a fresh trial, there isn't one, so it will **ask your permission** to create a project and its feature flags. Say yes, and it provisions them, switches on the remote MCP server your AI assistant connects to later, creates the four SDK tokens, and fills `.env` for you.
    - Prefer to do that part by hand? Say no, and follow [manual-setup.md](manual-setup.md) instead.
-6. **In another terminal, run `make dev`** (or `make docker-up`). Leave it running.
-7. **Run `make workshop-final-check`.** It verifies the PAT, the app, your project, your release template, and that the remote MCP server is on — then prints your project ID, your flags URL, and the MCP `export` commands. Now start at [Step 4: Wire the MCP server to your assistant](../virtual-workshop/04-wire-mcp.md).
+5. **In another terminal, run `make dev`** (or `make docker-up`). Leave it running.
+6. **Run `make workshop-final-check`.** It verifies the PAT, the SDK tokens, the app, your project, your release template, and that the remote MCP server is on — then prints your project ID, your flags URL, and the MCP `export` commands. Now start at [Step 4: Wire the MCP server to your assistant](../virtual-workshop/04-wire-mcp.md).
+7. **When you're done, run `make workshop-teardown`** to delete everything it created — see [Tearing it down](#tearing-it-down).
 
 ## What's different from the facilitated workshop
 
@@ -33,13 +33,20 @@ And `make workshop-configure` will **never adopt a project it didn't create**. P
 
 ## Tearing it down
 
-You can either: archive all flags in the created project, then archive the project itself - and delete it from the archived ones, or invoke the following command:
+When you're done, run:
 
 ```bash
-UNLEASH_BASE_URL="https://<region>.app.unleash-hosted.com/<instance>" \
-UNLEASH_ADMIN_TOKEN="<your-PAT>" \
-UNLEASH_PROJECTS="<your-project-id>" \
-  make workshop-teardown
+make workshop-teardown
 ```
 
-This archives the flags and removes the project release template, the project-specific segment, and the project-specific context fields. It also undoes the two instance-wide changes provisioning made: it deletes the global "Golden Release Rollout" example template and switches the remote MCP server off. The project itself is left alone — it's yours, on your instance. Delete it in the UI if you want it gone.
+It reads your instance URL, PAT, and project id from the `.env` that `make workshop-configure` filled, names the project, and asks before it changes anything. Then it **deletes your project** with everything in it:
+
+- every feature flag — the workshop's own and any you created during the workshop. Unleash needs two steps for that, so they are archived first and then deleted from the archive, which also frees their names;
+- the project release template, the segment, and the context fields;
+- the four SDK tokens `make workshop-configure` created.
+
+It also undoes the two instance-wide changes provisioning made: it deletes the global "Golden Release Rollout" example template and switches the remote MCP server off.
+
+Afterwards you can start over: `make workshop-configure` finds no project and offers to create a fresh one, which switches the remote MCP server back on.
+
+To tear down another instance or project, set `UNLEASH_BASE_URL`, `UNLEASH_ADMIN_TOKEN`, and `UNLEASH_PROJECTS` in front of the command. To do it by hand instead: archive every flag in the project, delete them from the project's archive, then delete the project in its settings.

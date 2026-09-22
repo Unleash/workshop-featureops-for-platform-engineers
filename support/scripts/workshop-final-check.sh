@@ -4,17 +4,18 @@
 #
 # Confirms an attendee is at a known-good state once `make workshop-configure` has filled .env and
 # the app is running, and prints a banner with everything they need for the rest of the workshop.
-# Six checks:
+# Seven checks:
 #   1. an AI assistant CLI is on PATH
 #   2. the Unleash PAT (UNLEASH_PAT) authenticates against your instance (UNLEASH_URL)
-#   3. the sample app boots (checkout API + storefront respond)
-#   4. your project + development/production environments exist
-#   5. the remote Unleash MCP server is enabled (you wire an assistant to it in step 4)
-#   6. your project's release template exists (you apply it in step 6)
+#   3. the four SDK tokens in .env authenticate (not the short ids Unleash lists in their place)
+#   4. the sample app boots (checkout API + storefront respond)
+#   5. your project + development/production environments exist
+#   6. the remote Unleash MCP server is enabled (you wire an assistant to it in step 4)
+#   7. your project's release template exists (you apply it in step 6)
 #
 # Only a non-booting app, a rejected token, or a demonstrably disabled MCP server fails the script;
-# a missing assistant CLI or release template is a warning. curl + jq are verified earlier by `make workshop-pre-check`,
-# so they are assumed here.
+# a missing assistant CLI or release template is a warning. curl + jq are verified earlier by
+# `make workshop-pre-check`, so they are assumed here.
 #
 # Usage:  bash support/scripts/workshop-final-check.sh   (or: make workshop-final-check)
 
@@ -140,8 +141,43 @@ else
   fi
 fi
 
-# --- 3. sample app boots ----------------------------------------------------
-printf '\n%s3) Sample app boots%s\n' "$BOLD" "$RESET"
+# --- 3. SDK tokens authenticate ----------------------------------------------
+# Since Unleash 8.2 a token's secret is visible only when the token is created; every list shows a
+# short id in its place, which the SDK endpoints reject with 401. So a value copied from a list looks
+# filled in but can never work. Each token must be scoped to your project + its environment
+# (`<project>:<environment>.…`) and authenticate against its own endpoint.
+printf '\n%s3) SDK tokens authenticate%s\n' "$BOLD" "$RESET"
+if [ -z "$ADMIN_URL" ]; then
+  bad "Skipped — needs UNLEASH_URL (see check 2)."
+else
+  for spec in \
+    "UNLEASH_API_TOKEN client development" \
+    "UNLEASH_API_TOKEN_PRODUCTION client production" \
+    "VITE_UNLEASH_CLIENT_KEY frontend development" \
+    "VITE_UNLEASH_CLIENT_KEY_PRODUCTION frontend production"; do
+    # shellcheck disable=SC2086
+    set -- $spec
+    key="$1" type="$2" env="$3"
+    secret="$(from_env "$key")"
+    if [ "$type" = "frontend" ]; then url="${ADMIN_URL}/api/frontend"; else url="${ADMIN_URL}/api/client/features"; fi
+
+    if [ -z "$secret" ]; then
+      bad "${key} is empty — run 'make workshop-configure' (it creates the token)."
+    elif [ "${secret#"${PROJECT_ID}:${env}."}" = "$secret" ]; then
+      bad "${key} is not a ${PROJECT_ID}/${env} token (a short id copied from a token list?) — re-run 'make workshop-configure'."
+    else
+      status="$(http_status "$url" "$secret")"
+      if [ "$status" = "200" ]; then
+        ok "${key} (${type}/${env}) authenticates."
+      else
+        bad "${key} rejected (HTTP ${status}) — re-run 'make workshop-configure' to create a fresh token."
+      fi
+    fi
+  done
+fi
+
+# --- 4. sample app boots ----------------------------------------------------
+printf '\n%s4) Sample app boots%s\n' "$BOLD" "$RESET"
 if wait_for_200 "${API_URL}/health" 5; then
   ok "Checkout API is up (${API_URL}/health)."
 else
@@ -153,8 +189,8 @@ else
   warn "Storefront not responding at ${WEB_URL} (it may still be starting)."
 fi
 
-# --- 4. project + environments exist ---------------------------------------
-printf '\n%s4) Project + environments%s\n' "$BOLD" "$RESET"
+# --- 5. project + environments exist ---------------------------------------
+printf '\n%s5) Project + environments%s\n' "$BOLD" "$RESET"
 if [ -z "$ADMIN_URL" ] || [ -z "$ADMIN_TOKEN" ]; then
   bad "Skipped — needs UNLEASH_URL / UNLEASH_PAT (see check 2)."
 else
@@ -173,7 +209,7 @@ else
   fi
 fi
 
-# --- 5. remote MCP server ----------------------------------------------------
+# --- 6. remote MCP server ----------------------------------------------------
 # You wire your AI assistant to <base>/api/admin/mcp in step 4; if the instance-level toggle is off,
 # you'd only find out when the assistant fails. GET /api/admin/remote-mcp/settings returns
 # { "enabled": bool } — an Enterprise feature, and an instance-level setting, so a scoped attendee
@@ -184,7 +220,7 @@ fi
 # remote MCP server, so an unreadable setting tells us nothing is wrong. A self-paced attendee turned
 # the toggle on by hand and deserves to be told we couldn't confirm it. We still issue the request
 # either way: it is what catches a provisioned instance where MCP was later switched back off.
-printf '\n%s5) Remote MCP server%s\n' "$BOLD" "$RESET"
+printf '\n%s6) Remote MCP server%s\n' "$BOLD" "$RESET"
 if [ -z "$ADMIN_URL" ] || [ -z "$ADMIN_TOKEN" ]; then
   bad "Skipped — needs UNLEASH_URL / UNLEASH_PAT (see check 2)."
 else
@@ -218,7 +254,7 @@ else
   esac
 fi
 
-# --- 6. project release template ---------------------------------------------
+# --- 7. project release template ---------------------------------------------
 # Step 6 applies your project's own release template — a project-level template (Unleash 8.2+) that
 # the provisioner creates next to your segment and context fields. It keeps its name in every
 # project; keep it in step with PROJECT_TEMPLATE_NAME in the provisioner's release-templates.ts.
@@ -226,7 +262,7 @@ fi
 # and then it has no such endpoint (404): step 6 falls back to the global Golden Release Rollout, so
 # a missing template is a warning, never a failure.
 RELEASE_TEMPLATE="Project Golden Release Rollout"
-printf '\n%s6) Project release template%s\n' "$BOLD" "$RESET"
+printf '\n%s7) Project release template%s\n' "$BOLD" "$RESET"
 if [ -z "$ADMIN_URL" ] || [ -z "$ADMIN_TOKEN" ]; then
   bad "Skipped — needs UNLEASH_URL / UNLEASH_PAT (see check 2)."
 else

@@ -7,16 +7,17 @@
 # then calls the Unleash admin API with that PAT to discover everything else:
 #   • the Unleash / Frontend / MCP URLs (derived from region + instance)
 #   • which project is yours — and, when you have none, offers to CREATE one for you
-#   • the four SDK tokens (backend + frontend, development + production) for that project
-# and writes them all back into .env in place.
+# then creates the four SDK tokens (backend + frontend, development + production) for that project
+# — a token's secret is readable only in its create response, so they can't be made ahead of time —
+# and writes everything back into .env in place.
 #
 # Two flows land here:
 #   • FACILITATED — Terraform already made you a `project-NNN` and granted your team group Owner on
 #     it. We find it, and your flags carry a `pNNN_` prefix (hundreds of projects share the instance,
 #     and context-field names are globally unique, so they must not collide).
-#   • SELF-PACED — your own free-trial instance, no Terraform. We offer to create the project, its
-#     flags, and its SDK tokens by running the same `unleash-provisioner` the facilitator uses
-#     (`make workshop-provision`). You own the instance, so your flags need no prefix.
+#   • SELF-PACED — your own free-trial instance, no Terraform. We offer to create the project and its
+#     flags by running the same `unleash-provisioner` the facilitator uses (`make workshop-provision`).
+#     You own the instance, so your flags need no prefix.
 #
 # .env is created from .env.example by the `make workshop-configure` prereq (`ensure-env`),
 # so this script assumes it already exists.
@@ -213,7 +214,7 @@ if [ -z "$PROJECT_ID" ]; then
       printf '\n'
       die "Stopped — nothing was created.
      To set it up by hand instead, follow ${BOLD}${MANUAL_SETUP_DOC}${RESET}
-     (minimum: one project, one promo-code flag, four SDK tokens), then re-run
+     (minimum: one project and one promo-code flag; this script creates the tokens), then re-run
      ${BOLD}make workshop-configure${RESET}."
       ;;
   esac
@@ -261,43 +262,82 @@ case "$fav_status" in
   *)  warn "Could not star ${PROJECT_ID} (HTTP ${fav_status}) — not critical, you can star it manually." ;;
 esac
 
-# --- 6. fetch the four SDK tokens -------------------------------------------
-# Use the *project-scoped* token endpoint: the attendee PAT can't read the instance-level
-# /api/admin/api-tokens (that needs ADMIN / READ_CLIENT_API_TOKEN / READ_FRONTEND_API_TOKEN), but
-# the project Owner holds READ_PROJECT_API_TOKEN, so /projects/{id}/api-tokens is readable. It
-# returns the same { "tokens": [...] } shape, already scoped to this project.
-TOKENS_JSON="$(auth_get "${BASE}/api/admin/projects/${PROJECT_ID}/api-tokens")"
+# --- 6. create the four SDK tokens -------------------------------------------
+# Since Unleash 8.2, SDK tokens are "secure": the real secret (`<project>:<environment>.<hash>`) comes
+# back only in the response to the call that creates the token. Every list afterwards — API and UI
+# alike — shows a short id in its place, which every SDK endpoint rejects with 401, and nothing can
+# reveal the secret again. So nobody can hand an attendee a ready-made token: this script creates
+# the four tokens itself and writes each secret straight from the create response.
+#
+# Per slot: a token already in .env that is scoped to this project + environment and authenticates
+# is kept, so re-running configure never breaks a working setup. Otherwise any older token of the
+# same name is deleted (its secret is unreadable, so it's dead weight) and a fresh one is created.
+# A project Owner holds READ/CREATE/DELETE_PROJECT_API_TOKEN, which is all this needs.
+TOKENS_ENDPOINT="${BASE}/api/admin/projects/${PROJECT_ID}/api-tokens"
 
-# Pick the secret for a (type, environment) pair scoped to our project, preferring a
-# project-specific token over a wildcard ("*") one.
-pick_token() {
-  local type="$1" env="$2"
-  printf '%s' "$TOKENS_JSON" | jq -r --arg p "$PROJECT_ID" --arg t "$type" --arg e "$env" '
-    [ .tokens[]?
-      | select(.type == $t and .environment == $e)
-      | select( (((.projects // []) | index($p)) != null) or ((.projects // []) == ["*"]) or (.project == $p) or (.project == "*") )
-    ]
-    | ( map(select((((.projects // []) | index($p)) != null) or (.project == $p))) + . )
-    | (.[0].secret // empty)
-  '
+# Does this secret authenticate as a <type> token for this project and environment?
+token_works() {
+  local type="$1" env="$2" secret="$3" url
+  case "$secret" in "${PROJECT_ID}:${env}."*) ;; *) return 1 ;; esac
+  if [ "$type" = "frontend" ]; then url="${BASE}/api/frontend"; else url="${BASE}/api/client/features"; fi
+  [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 -H "Authorization: $secret" "$url" 2>/dev/null)" = "200" ]
 }
 
-# Each entry is "<env-var> <token-type> <environment>". Kept as a plain list (not an associative
-# array) so the script runs under macOS's stock bash 3.2, which has no `declare -A`.
+# The current value of KEY in .env (last assignment wins, surrounding quotes stripped).
+env_value() { grep -E "^$1=" .env | tail -n1 | cut -d= -f2- | tr -d "\"'"; }
+
+# Does the project still list a <type> token for <environment>? A deleted token keeps
+# authenticating for a short while (the server caches tokens), so right after a teardown "it
+# authenticates" alone would keep a token that is about to stop working.
+LISTED_TOKENS="$(auth_get "$TOKENS_ENDPOINT")"
+token_listed() {
+  printf '%s' "$LISTED_TOKENS" | jq -e --arg t "$1" --arg e "$2" \
+    'any((.tokens // [])[]; .type == $t and .environment == $e)' >/dev/null 2>&1
+}
+
+# Each entry is "<env-var> <token-type> <environment> <name-slug>". Kept as a plain list (not an
+# associative array) so the script runs under macOS's stock bash 3.2, which has no `declare -A`.
+# Token names follow `<project>-<web|api>-<environment>` — what `make unleash-destroy` and
+# `make workshop-teardown` look for when they clean up.
 for spec in \
-  "UNLEASH_API_TOKEN client development" \
-  "UNLEASH_API_TOKEN_PRODUCTION client production" \
-  "VITE_UNLEASH_CLIENT_KEY frontend development" \
-  "VITE_UNLEASH_CLIENT_KEY_PRODUCTION frontend production"; do
+  "UNLEASH_API_TOKEN client development api" \
+  "UNLEASH_API_TOKEN_PRODUCTION client production api" \
+  "VITE_UNLEASH_CLIENT_KEY frontend development web" \
+  "VITE_UNLEASH_CLIENT_KEY_PRODUCTION frontend production web"; do
   # shellcheck disable=SC2086
   set -- $spec
-  key="$1" type="$2" env="$3"
-  secret="$(pick_token "$type" "$env")"
-  if [ -n "$secret" ]; then
+  key="$1" type="$2" env="$3" name="${PROJECT_ID}-$4-$3"
+
+  if token_listed "$type" "$env" && token_works "$type" "$env" "$(env_value "$key")"; then
+    ok "Kept ${key} (${type}/${env}) — the token in .env works."
+    continue
+  fi
+
+  # Delete older tokens of the same name. The listed `.secret` is the id DELETE expects — the short
+  # id for a secure token, the full secret for a pre-8.2 one.
+  auth_get "$TOKENS_ENDPOINT" | jq -r --arg n "$name" '(.tokens // [])[] | select(.tokenName == $n) | .secret' |
+    while IFS= read -r old; do
+      [ -n "$old" ] && curl -s -o /dev/null --max-time 15 -X DELETE -H "Authorization: $PAT" "${TOKENS_ENDPOINT}/${old}"
+    done
+
+  created="$(curl -s -w '\n%{http_code}' --max-time 15 -X POST -H "Authorization: $PAT" -H "Content-Type: application/json" \
+    -d "$(jq -nc --arg n "$name" --arg t "$type" --arg e "$env" --arg p "$PROJECT_ID" \
+      '{tokenName: $n, type: $t, environment: $e, projects: [$p]}')" \
+    "$TOKENS_ENDPOINT" 2>/dev/null || printf '\n000')"
+  status="$(printf '%s' "$created" | tail -n1)"
+  secret="$(printf '%s' "$created" | sed '$d' | jq -r '.secret // empty' 2>/dev/null)"
+
+  if [ "${status#2}" != "$status" ] && [ -n "$secret" ]; then
+    # Save it whatever happens next: this response is the only time the secret is ever visible.
     set_env "$key" "$secret"
-    ok "Set ${key} (${type}/${env})."
+    if token_works "$type" "$env" "$secret"; then
+      ok "Created ${BOLD}${name}${RESET} and set ${key} (${type}/${env})."
+    else
+      warn "Created ${name} and set ${key}, but it does not authenticate yet — check again with 'make workshop-final-check'."
+    fi
   else
-    warn "No ${type}/${env} token found for ${PROJECT_ID} — set ${BOLD}${key}${RESET} in .env manually."
+    warn "Could not create a ${type}/${env} token in ${PROJECT_ID} (HTTP ${status})."
+    warn "Create it in the Unleash UI (project → Settings → API access), copy the secret it shows only once, and set ${BOLD}${key}${RESET} in .env."
   fi
 done
 

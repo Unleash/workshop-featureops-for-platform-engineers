@@ -28,9 +28,9 @@ Type `release`. Leave it disabled. Give it a 100% _Gradual rollout_ strategy in 
 
 This is the one flag the workshop's later steps assume already exists. The app reads three more — `rl_checkout-page_basket-preview_product-images`, `kx_checkout-page_headline_link-to-real-unleash-store`, `ex_v_checkout-page_payment-section_free-shipping-nudge` — and an unknown flag simply evaluates to `false`, so the store still works without them. Add them the same way if you want the full demo.
 
-### 3. Four API tokens
+### 3. Four API tokens — let `make workshop-configure` create them
 
-Project-scoped, one per (type, environment):
+The app needs four project-scoped SDK tokens, one per (type, environment):
 
 | Type       | Environment   | Lands in `.env` as                   |
 | ---------- | ------------- | ------------------------------------ |
@@ -39,7 +39,13 @@ Project-scoped, one per (type, environment):
 | `client`   | `development` | `UNLEASH_API_TOKEN`                  |
 | `client`   | `production`  | `UNLEASH_API_TOKEN_PRODUCTION`       |
 
-`make workshop-configure` reads these straight out of the API and writes them for you — you don't need to copy the secrets anywhere.
+You don't need to create them: `make workshop-configure` creates all four and writes their secrets into `.env`. Unleash shows a token's secret **only once, when the token is created** — any list of tokens afterwards (in the UI or the API) shows a short id instead, which doesn't work as a token. So there is no way to read a secret back later.
+
+If your PAT can't create API tokens in the project, `make workshop-configure` says so. Then create each one in the Unleash UI (your project → **Settings → API access**), copy the secret it shows right away, and paste it into `.env` under the name in the table. `make workshop-configure` keeps a token already in `.env` as long as it works.
+
+### 4. The remote MCP server
+
+Switch it on in the admin UI (`https://<region>.app.unleash-hosted.com/<instance>/admin/mcp`) — your AI assistant connects to it in [Step 4](../virtual-workshop/04-wire-mcp.md). Provisioning would have done this for you; set up by hand, it stays off until you do.
 
 ## Then
 
