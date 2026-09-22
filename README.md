@@ -34,7 +34,7 @@ In addition to the above, you'll need `git`, `curl`, and `jq` too.
 
 **On Windows**, run everything from **WSL2** (recommended) with Node.js installed _inside_ WSL — a Windows Node.js reached through `/mnt/c` cannot work on WSL paths. **Git Bash** with a GNU `make` works too. A plain `cmd.exe` or PowerShell is not supported: the `Makefile` and the workshop scripts need a POSIX shell, and stop early with a pointer here when they don't get one.
 
-### For the attendees of a virtual hands-on workshop
+### For the attendees of a hands-on workshop
 
 If you want to prepare for the workshop **ahead of time**, `git clone` this repository. Then, inside the cloned repository, run the following command – and follow the instructions printed in the console:
 
