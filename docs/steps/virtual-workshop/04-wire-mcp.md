@@ -31,7 +31,7 @@ Connect your AI coding assistant to the **remote Unleash MCP server** so it can 
 
 ## Outcome / success
 
-Your assistant reports the `unleash` MCP server as connected and lists at least the following tools: `evaluate_change`, `detect_flag`, `create_flag`, `wrap_change`, `set_flag_rollout`, `get_flag_state`, `toggle_flag_environment`, `remove_flag_strategy`, `cleanup_flag`.
+Your assistant reports the `unleash` MCP server as connected and lists at least the following tools: `search`, `inspect`, `evaluate`, `release`, `kill_switch`, `experiment`, `manage_flag`, `configure`, `audit`, `docs`.
 
 A read-only call (e.g., checking a seeded flag's state) succeeds against **your** project. The platform (not each developer) has shipped the connection, naming convention, and FeatureOps guidelines via the committed config and `AGENTS.md`.
 
@@ -60,6 +60,8 @@ Use the Unleash MCP server to scan the codebase, find all the flags, and then pr
 > **GitHub Copilot CLI** does not read `.vscode/mcp.json` — only `.mcp.json`, `.github/mcp.json`, and its own `~/.copilot/mcp-config.json`. It also skips project servers until you trust the folder. Run `/mcp` to check that `unleash` is listed, and `/mcp reload` if it is not. As a last resort, start it with `copilot --additional-mcp-config @.github/mcp.json`.
 
 > The server has to be switched on instance-wide before any of this works. `make workshop-final-check` (Step 3) verifies that for you — if it reported the remote MCP server as **disabled**, enable it in the Unleash admin UI and re-run before debugging your assistant's config.
+
+> Working through the self-paced workshop and can't use the remote MCP server? Run the same server on your machine instead — see [the local fallback](../self-paced/README.md#if-you-cant-use-the-remote-mcp-server).
 
 > The assistant has no idea which project is yours, and the remote MCP server has no default — so **tell it your project id** in the prompt (`make workshop-final-check` prints it). The same goes for your flag prefix if you have one.
 

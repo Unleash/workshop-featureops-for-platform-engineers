@@ -6,7 +6,7 @@
       "headers": {
         "Authorization": "Bearer $COPILOT_MCP_UNLEASH_MCP_PAT_TOKEN"
       },
-      "tools": ["detect_flag", "get_flag_state", "cleanup_flag"]
+      "tools": ["search", "inspect", "docs"]
     }
   }
 }

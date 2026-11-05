@@ -19,8 +19,8 @@ Based on Unleash's [Automating Feature Flag Cleanup with GitHub Copilot](https:/
 4. GitHub Actions workflow assigns          (github/workflows/cleanup-flag.yml)
    @copilot to the issue
 5. Copilot reads the issue, uses the        (copilot/mcp.json + cleanup-instructions.md)
-   Unleash MCP server (detect_flag,
-   get_flag_state, cleanup_flag) and
+   Unleash MCP server (search,
+   inspect, docs) and
    opens a cleanup PR
 ```
 
