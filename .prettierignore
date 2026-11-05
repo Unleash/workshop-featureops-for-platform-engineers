@@ -14,6 +14,12 @@ pnpm-lock.yaml
 # formats it. The other samples have no prettier config of their own, so they stay formatted here.
 other-examples/backstage-with-unleash/
 
+# The featureops skill is vendored byte-for-byte from Unleash/unleash-claude-skills by the skills CLI
+# (`make maint-skills-update`). Reformatting it would change the hash in skills-lock.json and turn
+# every re-sync into a noisy diff. The lock file belongs to the CLI too.
+.agents/skills/
+skills-lock.json
+
 # Terraform state & local artifacts:
 *.tfstate
 *.tfstate.*
