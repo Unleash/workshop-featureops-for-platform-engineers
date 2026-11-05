@@ -4,9 +4,9 @@ Our goal for this step is to induce the _aha moment_: let the agent write a genu
 
 ## Steps
 
-- [ ] We have pre-picked the flag-worthy feature: **a payment provider switch** (_PayBro_ ↔ _Dashed_). `AGENTS.md` marks payment changes as risky, so the agent reliably reaches for a flag.
-- [ ] Prompt your assistant to implement it, instructing it to judge the risk _before_ writing code and follow the recommended workflow (`docs → search → inspect → manage_flag`, then wrap the code path).
-- [ ] Read what the agent did: which flag **type** it chose and why, and confirm it ran `search` first so it didn't duplicate an existing flag.
+- [ ] We have pre-picked the flag-worthy feature: **a payment provider switch** (_PayBro_ ↔ _Dashed_). The repo's FeatureOps policy (`.unleash/featureops.md`) marks payments as a high-risk domain, so the agent reliably reaches for a flag.
+- [ ] Prompt your assistant to implement it, instructing it to judge the risk _before_ writing code and follow the recommended workflow: the `featureops` skill's evaluate step, then `search → inspect → manage_flag`, then wrap the code path.
+- [ ] Read what the agent did: which **tier** (Critical, High, Medium or Low) it gave the change, which flag **type** it chose and why, and confirm it ran `search` first so it didn't duplicate an existing flag.
 - [ ] Confirm the new flag exists in **your** project, **disabled**, with the code path wrapped but dark.
 - [ ] Sanity-check the flag name against the convention: `[<prefix>_]<rl|ex|op|kx|pm>_[v_]<domain>_<component>_<slug>`. Your project enforces this as a naming pattern, so a flag that doesn't match is rejected outright.
 
@@ -20,7 +20,7 @@ The payment-provider-switch code is committed but **wrapped** behind it (the sea
 <summary><strong>Example prompt</strong>: Implement the switch, flag-first</summary>
 
 ```
-Add a payment provider switch so checkout can route to either PayBro or Dashed (both are real providers in this repo; integration for Dashed is present in the code, but not yet wired). Before writing any code, use the Unleash MCP server: first docs to decide whether this needs a feature flag, search to avoid duplicates, inspect to read the project's naming pattern, then manage_flag to create the flag, and wrap the new code path in it (in the project available based on my permissions). Keep it disabled, and follow the repo's flag naming convention. Explain which flag type you chose and why.
+Add a payment provider switch so checkout can route to either PayBro or Dashed (both are real providers in this repo; integration for Dashed is present in the code, but not yet wired). Before writing any code, follow the featureops skill to decide whether this needs a feature flag and report its tier. Then use the Unleash MCP server: search to avoid duplicates, inspect to read the project's naming pattern, then manage_flag to create the flag, and wrap the new code path in it (in the project available based on my permissions). Keep it disabled, and follow the repo's flag naming convention. Explain which flag type you chose and why.
 ```
 
 </details>
@@ -29,7 +29,7 @@ Add a payment provider switch so checkout can route to either PayBro or Dashed (
 <summary><strong>Example prompt</strong>: Review what the agent did</summary>
 
 ```
-Summarize the change you just made: the flag name and type, why this change needed a flag, the exact code path now guarded by it, and confirm the flag is disabled (in the project available based on my permissions).
+Summarize the change you just made: the flag name and type, the tier you gave the change and why it needed a flag, the exact code path now guarded by it, and confirm the flag is disabled (in the project available based on my permissions).
 ```
 
 </details>

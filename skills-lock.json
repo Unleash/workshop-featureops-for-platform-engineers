@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "skills": {
+    "featureops": {
+      "source": "Unleash/unleash-claude-skills",
+      "sourceType": "github",
+      "skillPath": "skills/featureops/SKILL.md",
+      "computedHash": "c3f552ab8a469107e92ed6a5eda62ff99213cb6d2c122d6b85ad45b1eb850615",
+      "installMode": "copy"
+    }
+  }
+}

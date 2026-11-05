@@ -63,6 +63,8 @@ Use the Unleash MCP server to scan the codebase, find all the flags, and then pr
 
 > Working through the self-paced workshop and can't use the remote MCP server? Run the same server on your machine instead — see [the local fallback](../self-paced/README.md#if-you-cant-use-the-remote-mcp-server).
 
+> This repo ships the Unleash `featureops` skill in `.agents/skills/featureops/`, so your assistant can judge how risky a change is before it touches code. To use it in your own projects, install it the same way this repo did, with `npx skills add Unleash/unleash-claude-skills --skill featureops`, which works for most assistants. It copies the skill only, so connect the MCP server yourself as above, under the name `unleash`.
+
 > The assistant has no idea which project is yours, and the remote MCP server has no default — so **tell it your project id** in the prompt (`make workshop-final-check` prints it). The same goes for your flag prefix if you have one.
 
 ## Next step

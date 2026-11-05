@@ -86,12 +86,18 @@ REFRESH ?= true
 USER_BATCH_SIZE  ?= 20
 USER_BATCH_PAUSE ?= 60
 
+# The featureops skill, vendored into .agents/skills/ (see `make maint-skills-update`). skills-lock.json
+# records the source and a content hash but not the commit, so the pin lives here. Bump the ref to
+# take a newer upstream version, then review the diff.
+FEATUREOPS_SKILL_REF ?= fddff5bfb4c3ab4798e0ddb0795458da769426eb
+SKILLS_CLI_VERSION   ?= 1.7.6
+
 .PHONY: help workshop-pre-check workshop-configure workshop-provision workshop-teardown workshop-final-check \
         setup install dev clean \
         docker-pull docker-up docker-down docker-image docker-logs \
         unleash-create unleash-destroy \
         master-kill-switch master-kill-switch-web \
-        maint-fmt maint-lint-infra maint-lint maint-build maint-test maint-check \
+        maint-fmt maint-lint-infra maint-lint maint-build maint-test maint-check maint-skills-update \
         ensure-toolchain ensure-env ensure-tf-env shared-build \
         _dev-web _dev-api _dev-web-prod _dev-api-prod _dev-paybro _dev-dashed
 
@@ -121,13 +127,16 @@ help:
 	@echo "  make docker-logs      Tail the container logs"
 	@echo ""
 	@echo "MAINTAINER — develop & expand the repo (full toolchain)"
-	@echo "  make maint-check      Format, lint (app + scripts), build, test, typecheck"
-	@echo "  make maint-lint       Lint app + scripts    ·  make maint-fmt    Format everything"
-	@echo "  make maint-test       Run tests             ·  make maint-build  Production build"
-	@echo "  make unleash-create   Provision project/users/envs + import flags"
-	@echo "  make unleash-destroy  Delete flags and tear everything down"
-	@echo "  make workshop-provision  Self-paced: create one project + its flags (run by workshop-configure)"
-	@echo "  make workshop-teardown   Self-paced: delete your project and everything provisioning made"
+	@echo "  make maint-check          Format, lint (app + scripts), build, test, typecheck"
+	@echo "  make maint-lint           Lint app + scripts"
+	@echo "  make maint-fmt            Format everything"
+	@echo "  make maint-test           Run tests"
+	@echo "  make maint-build          Production build"
+	@echo "  make maint-skills-update  Re-vendor the featureops skill at FEATUREOPS_SKILL_REF (skills.sh)"
+	@echo "  make unleash-create       Provision project/users/envs + import flags"
+	@echo "  make unleash-destroy      Delete flags and tear everything down"
+	@echo "  make workshop-provision   Self-paced: create one project + its flags (run by workshop-configure)"
+	@echo "  make workshop-teardown    Self-paced: delete your project and everything provisioning made"
 	@echo "  (provisioning needs terraform + TF_VAR_unleash_base_url / TF_VAR_unleash_token in .env)"
 	@echo ""
 	@echo "Apps (development):  web :8080  ·  api :8081 (/health,/metrics)"
@@ -322,6 +331,18 @@ maint-test: shared-build
 maint-check: maint-build
 	$(call pm_rec,test)
 	$(call pm_rec,typecheck)
+
+# Re-vendor the featureops skill from Unleash/unleash-claude-skills at the pinned commit, as a plain
+# copy in .agents/skills/ (the shared folder most agents read; Claude Code and Kiro reach it through
+# AGENTS.md). The old copy goes first, so files dropped upstream don't linger. `skills check` then
+# says whether upstream has moved past the pin; it doesn't fail the target.
+maint-skills-update:
+	rm -rf .agents/skills/featureops
+	DISABLE_TELEMETRY=1 npx -y skills@$(SKILLS_CLI_VERSION) add \
+	  Unleash/unleash-claude-skills@$(FEATUREOPS_SKILL_REF) --skill featureops -a universal --copy -y
+	@DISABLE_TELEMETRY=1 npx -y skills@$(SKILLS_CLI_VERSION) check \
+	  || echo "Upstream has a newer featureops skill: bump FEATUREOPS_SKILL_REF to take it."
+	@git status --short -- .agents/skills skills-lock.json
 
 # =====================================================================
 # Helpers (used as prerequisites)
