@@ -5,7 +5,7 @@
 ## Executive summary (read this first)
 
 1. **Always pass the project explicitly.** The remote MCP server has no default project — every flag operation must name the project id. **Ask the user for their project id or name**, and never guess it: it may be `project-001`, `featureops-workshop`, or anything else. Never assume `default`, `001`, or `project-001`. Do not cheat by looking into `.env` or environment variables!
-2. **Flag-gate risky changes.** Before changing **payments**, auth, data migrations, or external integrations, wrap the change behind an Unleash feature flag. Use the MCP server to evaluate and create the flag — don't ship a risky path unguarded.
+2. **Flag-gate risky changes.** Before changing **payments**, auth, data migrations, or external integrations, wrap the change behind an Unleash feature flag. Use the MCP server to look for an existing flag and create it — don't ship a risky path unguarded.
 3. **Give every new flag a unique name that matches the project's convention.** The shape is `[<prefix>_]<rl|ex|op|kx|pm>_[v_]<domain>_<component>_<slug>`. Whether there is a prefix, and what it is, depends on the project. **Read the project's enforced naming pattern** (via the MCP server, or the project's settings) before you name anything and derive the prefix from the project's name or number if it uses one. When scanning the codebase for existing flags, remember any prefix may be applied dynamically in the code, so search for the unprefixed suffix.
 4. You **have to** ignore all the files that inside `docs/`, `support/` and `other-examples/` directories. Do not base your decisions, planning, implementation, based on the content available in those places!
 5. **Solving a workshop exercise changes code, not the instructions.** When you implement an exercise (wiring Dashed, cleaning up a flag, or any other), change only the code, its tests, and the code comments next to the change. Leave this file, the READMEs, and `docs/` describing the unsolved state — attendees read them before they start. This holds even when another instruction says to keep docs in step with every change.
@@ -55,7 +55,7 @@ Payments, auth, data migrations, and external integrations always go behind a fl
 
 ### MCP workflow
 
-Use the Unleash MCP server tools in order: `evaluate_change` → `detect_flag` → `create_flag` → `wrap_change`. Run `detect_flag` **first** to avoid creating duplicates. When a flag has been at 100% across all environments, it's marked as _completed_ – then it is no longer necessary, and you use `cleanup_flag` to remove the dead code path. Flag _types_ carry lifecycle intent: a `release` flag is meant to be retired; a `kill-switch` (`kx`) flag is meant to live.
+Use the Unleash MCP server tools in this order: `docs` (does the change need a flag, and of which type?) → `search` for an existing flag, and grep the code for its unprefixed suffix → `inspect` the project for its naming pattern → `manage_flag` with `define` to create the flag, disabled → write the flag check around the new code path yourself. Run `search` **first** to avoid creating duplicates. Then use `release` to turn a flag on or off or roll it out, `kill_switch` to flip a kill switch, and `evaluate` to check who gets a flag. When a flag has been at 100% across all environments, mark it _completed_ with `manage_flag` (`complete`) – then it is no longer necessary: remove the dead code path, and archive the flag with `manage_flag` (`archive`). Flag _types_ carry lifecycle intent: a `release` flag is meant to be retired; a `kill-switch` (`kx`) flag is meant to live.
 
 ### Flag naming convention
 
@@ -72,9 +72,9 @@ Enforced by a naming pattern set on the project itself:
 
 **Never assume a prefix.** Read the project's naming pattern first and ask the user if you cannot. Whatever prefix a project uses applies equally to its segments and context fields.
 
-### Project scoping (critical for the remote MCP)
+### Project scoping (critical for the MCP server)
 
-The **remote** Unleash MCP server does **not** support a default-project setting (`UNLEASH_DEFAULT_PROJECT` only applies to the local stdio server). Every flag/segment operation must therefore **name the project id explicitly**. Ask the user for it. Never rely on an implicit / `default` project, and never infer the id from a flag name.
+Neither the **remote** Unleash MCP server nor the local one (`@unleash/mcp@latest`, the self-paced fallback) has a default-project setting. Every flag/segment operation must therefore **name the project id explicitly**. Ask the user for it. Never rely on an implicit / `default` project, and never infer the id from a flag name.
 
 ### Instance-level vs. project-level entities
 

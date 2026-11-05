@@ -4,9 +4,9 @@
 
 When you are assigned a GitHub issue labeled `unleash-flag-completed`, the flag named in the issue has been marked **completed** in Unleash and its code path is ready to retire. Drive the cleanup with the Unleash MCP server:
 
-1. `detect_flag` — find every reference to the flag across the codebase.
-2. `get_flag_state` — confirm the completion outcome so you keep the correct branch (the rolled-out/enabled path for a kept flag; the disabled path for a discarded one).
-3. `cleanup_flag` — get framework-specific removal guidance for each file you edit.
+1. `search` — confirm the flag exists in the project, then grep the codebase for every reference (search for the unprefixed suffix too, since a prefix may be added in code).
+2. `inspect` — confirm the completion outcome so you keep the correct branch (the rolled-out/enabled path for a kept flag; the disabled path for a discarded one).
+3. `docs` — read Unleash's guidance on removing a flag from code before you edit each file.
 
 Then:
 

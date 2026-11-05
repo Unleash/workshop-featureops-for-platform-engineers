@@ -16,7 +16,7 @@ It's time to close the loop: flags are inventory. You will retire another flag c
     - ![Mark feature as completed](./assets/mark-as-completed.png)
   - After choosing "_keep the feature_"", you will see that the corresponding _lifecycle icon_ changed to _red_ color. You can hover over that icon (_1_) to learn more.
     - ![Feature is ready to cleanup](./assets/ready-to-cleanup.png)
-- [ ] Now, it's time to ask your AI coding assistant to use `cleanup_flag` on flags that are ready for cleanup.
+- [ ] Now, it's time to ask your AI coding assistant to clean up flags that are ready for it: it finds them with `search`, checks each one with `inspect`, and reads `docs` for how to remove a flag safely.
   - The AI agent will generate safe-removal instructions for your fully rolled-out flag: remove the unused guarded branch, confirm the code path is clean, and then suggest to archive the flag in _Unleash_.
 - [ ] Apply or just _review_ the cleanup _diff_ and verify the feature code is unguarded (or removed), and the flag is archived in your project.
 
@@ -30,7 +30,7 @@ You have full control over who can change what, in which environment, gated by a
 <summary><strong>Example prompt</strong>: Clean up the flag</summary>
 
 ```
-Inspect flags that are ready to cleanup: fully rolled out and no longer needed. Use the Unleash MCP server cleanup_flag tool to generate the safe removal steps, then remove the unused branch from the code, and confirm the code path is clean. Provide a recommendation is it safe to archive that flag or not, asssuming the provided changes will be applied and deployed.
+Inspect flags that are ready to cleanup: fully rolled out and no longer needed. Use the Unleash MCP server: search for flags in the cleanup stage, inspect each one to see which outcome was kept, and read docs for the safe removal steps. Then remove the unused branch from the code, and confirm the code path is clean. Provide a recommendation is it safe to archive that flag with manage_flag or not, assuming the provided changes will be applied and deployed.
 ```
 
 </details>
@@ -39,4 +39,4 @@ Inspect flags that are ready to cleanup: fully rolled out and no longer needed. 
 
 > Notice the governance reveals: you've been acting as a **scoped, non-admin user**, and changing **production** now requires a **change request**. The custom role and your access were provisioned via Terraform before you arrived — but the guard itself you switched on yourself, in one click, on a live project. That is the whole point: this governance is a setting, not a rebuild.
 
-> If you're short on time, the lifecycle management and `cleanup_flag` reveal is the takeaway. The RBAC, change requests, and audit logs are part of the short narration you can read above without clicking.
+> If you're short on time, the lifecycle management and the agent-driven cleanup reveal is the takeaway. The RBAC, change requests, and audit logs are part of the short narration you can read above without clicking.

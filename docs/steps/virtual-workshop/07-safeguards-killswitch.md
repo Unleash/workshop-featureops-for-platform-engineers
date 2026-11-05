@@ -12,7 +12,7 @@ Let's make the rollout self-defending with a safeguard that pauses a bad release
   - Then **drive errors** by routing checkouts through **Dashed**; that provider fails occasionally, which will cause errors metric to spike.
 - [ ] Watch the safeguard trigger automatically, no one had to babysit the dashboard.
   - Safeguard either **pause the milestone progression** or **disable the flag in this environment** automatically, depending on your choice above.
-- [ ] Alternatively, you can disable the flag via MCP tool `toggle_flag_environment` off, which allows you to **kill/disable** a misbehaving feature as a part of the agentic AI interaction.
+- [ ] Alternatively, you can disable the flag via the MCP tool `release` (turning it off in that environment), which allows you to **kill/disable** a misbehaving feature as a part of the agentic AI interaction.
   - In both cases, the affected feature is globally off in seconds, no redeploy, no pipeline, no ticket needed.
 
 ## Outcome / success
@@ -25,7 +25,7 @@ The opening diagnostic becomes concrete: L3 (at runtime/request layer) reversibi
 <summary><strong>Example prompt</strong>: Disable the flag via MCP tool</summary>
 
 ```
-The checkout error metric is spiking. Use toggle_flag_environment to turn my flag <FLAG_NAME> off in the production environment (in the project available based on my permissions), and then confirm it is off.
+The checkout error metric is spiking. Use the release tool to turn my flag <FLAG_NAME> off in the production environment (in the project available based on my permissions), and then confirm with inspect that it is off.
 ```
 
 </details>

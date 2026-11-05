@@ -23,6 +23,41 @@ Once you're set up, you follow the same handouts as the virtual workshop, from S
 
 **No master kill switch.** That's facilitator tooling for flipping every attendee project at once, and it needs a Terraform-provisioned service account. It isn't provisioned here, and no workshop step depends on it.
 
+## If you can't use the remote MCP server
+
+The remote MCP server is the way to go, but if you can't or don't want to use it, run the same server on your machine. `npx -y @unleash/mcp@latest` starts it and offers the same tools, and you need Node.js 24 or later. It reads two values:
+
+- `UNLEASH_BASE_URL` — your instance root, without `/api`: the `UNLEASH_URL` from `.env` minus its trailing `/api/`, e.g. `https://<region>.app.unleash-hosted.com/<instance>`. The server adds `/api/admin/…` itself.
+- `UNLEASH_PAT` — the same PAT as `UNLEASH_PAT` in `.env`.
+
+For Claude Code, register it under the same name as the remote server, so it takes the place of the committed `.mcp.json` entry for you alone:
+
+```bash
+claude mcp add unleash \
+  -e UNLEASH_BASE_URL=https://<region>.app.unleash-hosted.com/<instance> \
+  -e UNLEASH_PAT=<your-pat> \
+  -- npx -y @unleash/mcp@latest
+```
+
+Other assistants take the same server as a `command` entry in their MCP config:
+
+```json
+{
+  "mcpServers": {
+    "unleash": {
+      "command": "npx",
+      "args": ["-y", "@unleash/mcp@latest"],
+      "env": {
+        "UNLEASH_BASE_URL": "https://<region>.app.unleash-hosted.com/<instance>",
+        "UNLEASH_PAT": "<your-pat>"
+      }
+    }
+  }
+}
+```
+
+Keep that entry in your own user config, not in the committed files, so your PAT stays out of git. Like the remote server, the local one has no default project, so still tell your assistant your project id.
+
 ## Using an existing Unleash instance
 
 You can point this at an instance you already use, but two things change.
